@@ -60,16 +60,19 @@ exports.addFavorite = async (req, res) => {
 // @access  Private
 exports.getFavorites = async (req, res) => {
     try {
-        
-        const favorites = await Favorite.find({ user: req.user.id }).populate(
-            "item"
-        );
+        const favorites = await Favorite.find({ user: req.user.id }).populate({
+            path: "item",
+            model: "Product", 
+            select: "name price image description",
+        });
 
         res.status(200).json({ success: true, data: favorites });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
+
 
 
 
