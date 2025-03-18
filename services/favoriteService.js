@@ -63,7 +63,7 @@ exports.getFavorites = async (req, res) => {
         const favorites = await Favorite.find({ user: req.user.id }).populate({
             path: "item",
             model: "Product", 
-            select: "name price image description",
+            select: "name title price image description",
         });
 
         res.status(200).json({ success: true, data: favorites });
