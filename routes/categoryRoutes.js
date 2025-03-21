@@ -12,6 +12,9 @@ const {
   updateCategory,
   deletCategory,
 } = require("../services/categoryService");
+
+const { protect, allowedTo } = require("../services/authService");
+
 // const { getSubCategories } = require("../services/subCategoryService");
 
 const subCategoriesRoute = require("./subCategoryRoute");
@@ -23,7 +26,12 @@ router.use("/:categoryId/subcategories", subCategoriesRoute);
 router
   .route("/")
   .get(getCategories)
-  .post(creatCategoryValidator, creatCategory);
+  .post(
+    protect,
+    allowedTo("admin", "manager"),
+    creatCategoryValidator,
+    creatCategory
+  );
 router
   .route("/:id")
   .get(getCategoryValidator, getCategory)

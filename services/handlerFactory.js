@@ -28,11 +28,14 @@ exports.creatOne = (Model) =>
     const document = await Model.create(req.body);
     res.status(201).json({ data: document });
   });
-
-exports.getOne = (Model) =>
+exports.getOne = (Model, name) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const document = await Model.findById(id);
+    if (name === "product") {
+      document.visit += 1; // زيادة العدد
+      await document.save(); // حفظ التحديث في قاعدة البيانات
+    }
     if (!document) {
       return next(new ApiError(`No subCategory for this id ${id}`, 404));
     }

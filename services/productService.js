@@ -4,11 +4,11 @@ const productModel = require("../models/productModel");
 //@desc Getlist of product
 //@route GET/api/v1/products
 //@access public
-exports.getProducts = factory.getAll(productModel, "product");
+exports.getProducts = factory.getAll(productModel, "products");
 //@desc get spacific product by id
 //@route GET /api/v1/products/:id
 //@access public
-exports.getProduct = factory.getOne(productModel);
+exports.getProduct = factory.getOne(productModel, "product");
 
 //@desc Creagt product
 //@route POST /api/v1/products
