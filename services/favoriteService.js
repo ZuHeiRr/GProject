@@ -8,10 +8,10 @@ const Product = require("../models/productModel"); // في حالة إضافة �
 // @access  Private
 exports.addFavorite = async (req, res) => {
     try {
-        const { itemId} = req.body;
+        const { itemId } = req.body;
 
-        // التحقق من وجود البيانات المطلوبة
-        if (!itemId ) {
+        // التحقق من وجود `itemId`
+        if (!itemId) {
             return res.status(400).json({
                 success: false,
                 message: "itemId is required.",
@@ -19,9 +19,11 @@ exports.addFavorite = async (req, res) => {
         }
 
 
-        // البحث عن العنصر المراد إضافته للمفضلة
         const item = await Product.findById(itemId);
-        
+        const itemType = "Product";
+
+
+
         // إذا لم يتم العثور على العنصر
         if (!item) {
             return res.status(404).json({
@@ -33,7 +35,7 @@ exports.addFavorite = async (req, res) => {
         // التحقق مما إذا كان العنصر مضافًا مسبقًا
         const exists = await Favorite.findOne({
             user: req.user.id,
-            item: itemId
+            item: itemId,
         });
 
         if (exists) {
@@ -43,10 +45,11 @@ exports.addFavorite = async (req, res) => {
             });
         }
 
-        // إضافة العنصر إلى المفضلة
+        // إضافة العنصر إلى المفضلة مع `itemType`
         const favorite = await Favorite.create({
             user: req.user.id,
-            item: itemId
+            item: itemId,
+            itemType: itemType, // الآن الحقل موجود ولن يظهر الخطأ
         });
 
         res.status(201).json({ success: true, data: favorite });
@@ -54,6 +57,7 @@ exports.addFavorite = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 // @desc    Get user favorites
 // @route   GET /api/favorites
