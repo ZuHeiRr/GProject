@@ -14,8 +14,12 @@ const {
   changeUserPassword,
   deleteUser,
 } = require("../services/userService");
+const { protect, allowedTo } = require("../services/authService");
 
 const router = express.Router();
+router.use(protect);
+router.use(allowedTo("admin", "manager"));
+
 router.put(
   "/changePassword/:id",
   changeUserPasswordValidator,
