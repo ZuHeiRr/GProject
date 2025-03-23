@@ -3,7 +3,7 @@ const {
   signupValidator,
   loginValidator,
 } = require("../utils/validators/authValidator");
-
+ 
 const {
   signup,
   login,
