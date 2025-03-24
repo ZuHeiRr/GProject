@@ -16,15 +16,7 @@ const { protect, allowedTo } = require("../services/authService");
 
 const router = express.Router();
 
-router
-  .route("/")
-  .get(getProducts)
-  .post(
-    protect,
-    allowedTo("admin", "manager"),
-    creatProductValidator,
-    creatProduct
-  );
+router.route("/").get(getProducts).post(protect, creatProduct);
 router
   .route("/:id")
   .get(getProductValidator, getProduct)
