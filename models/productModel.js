@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Favorite = require("./Favorite"); 
 
 const productSchema = new mongoose.Schema(
   {
@@ -68,6 +69,7 @@ const productSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    
   },
   {
     timestamps: true,
@@ -81,6 +83,15 @@ productSchema.pre(/^find/, function (next) {
     select: "name -_id",
   });
   next();
+});
+// ✅ حذف المنتج من المفضلة إذا تم حذفه من قاعدة البيانات
+productSchema.pre("deleteOne", { document: true, query: false }, async function (next) {
+    try {
+        await Favorite.deleteMany({ item: this._id }); // ✅ حذف كل المفضلات المرتبطة
+        next();
+    } catch (error) {
+        next(error);
+    }
 });
 
 module.exports = mongoose.model("Product", productSchema);

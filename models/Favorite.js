@@ -20,7 +20,7 @@ const favoriteSchema = new mongoose.Schema(
         itemType: {
             type: String,
             required: true,
-            enum: ["Product"],
+            enum: ["Product", "Course"],
         },
     },
     { timestamps: true } // Automatically adds createdAt and updatedAt fields

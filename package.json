@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start:dev": "nodemon server.js",
-    "start:prod": "cross-env NODE_ENV=production node server.js"
+    "start:prod": "cross-env NODE_ENV=production node server.js",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
@@ -34,5 +35,13 @@
     "morgan": "^1.10.0",
     "slugify": "^1.6.6"
   },
-  "description": ""
+  "description": "��I\u0000n\u0000i\u0000t\u0000i\u0000a\u0000l\u0000 \u0000c\u0000o\u0000m\u0000m\u0000i\u0000t\u0000\r\u0000 \u0000",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZuHeiRr/GProject.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ZuHeiRr/GProject/issues"
+  },
+  "homepage": "https://github.com/ZuHeiRr/GProject#readme"
 }
