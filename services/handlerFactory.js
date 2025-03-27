@@ -27,12 +27,21 @@ exports.creatOne = (Model) =>
   asyncHandler(async (req, res) => {
     const document = await Model.create(req.body);
     res.status(201).json({ data: document });
+    // const token = req.headers.authorization.split(" ")[1];
+    // const decoded = jwt.verify(token, "SECRET_KEY"); // استخدم المفتاح السري الخاص بك
+    // if (name === "product") {
+    //   document.sellerId = decoded.id;
+    // }
+    // await document.save(); // حفظ التحديث في قاعدة البيانات
   });
-
-exports.getOne = (Model) =>
+exports.getOne = (Model, name) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const document = await Model.findById(id);
+    if (name === "product") {
+      document.visit += 1; // زيادة العدد
+      await document.save(); // حفظ التحديث في قاعدة البيانات
+    }
     if (!document) {
       return next(new ApiError(`No subCategory for this id ${id}`, 404));
     }

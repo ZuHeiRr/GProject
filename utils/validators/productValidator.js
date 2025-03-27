@@ -22,6 +22,11 @@ exports.creatProductValidator = [
       req.body.slug = slugify(val);
       return true;
     }),
+  check("user")
+    .notEmpty()
+    .withMessage("Product must be belong to a user")
+    .isMongoId()
+    .withMessage("Invalid ID formate"),
   check("description")
     .notEmpty()
     .withMessage("Product description is required")
