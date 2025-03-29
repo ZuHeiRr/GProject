@@ -27,6 +27,7 @@ exports.createCourse = async (req, res) => {
                 .json({ success: false, message: "Invalid category ID" });
         }
 
+        
         // ✅ إنشاء الكورس فقط إذا كانت الفئة صحيحة
         const course = await Course.create({
             title,
@@ -82,7 +83,7 @@ exports.getCourses = async (req, res) => {
 
         // 🔍 تنفيذ الاستعلام
         const courses = await Course.find(query)
-            .populate("instructor", "name")
+            .populate("instructor", "name phone")
             .populate("category", "id name") // ✅ جلب اسم الـ category و الـ ID فقط
             .sort(sortOption)
             .skip(skip)
@@ -90,7 +91,7 @@ exports.getCourses = async (req, res) => {
 
         // 🛑 إذا لم يتم العثور على أي نتائج
         if (!courses.length) {
-            return res.status(404).json({
+            return res.status(200).json({
                 success: false,
                 message: "No courses found matching the criteria",
             });

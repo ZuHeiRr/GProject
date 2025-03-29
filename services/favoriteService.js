@@ -54,41 +54,40 @@ exports.addFavorite = async (req, res) => {
 // @access  Private
 exports.getFavorites = async (req, res) => {
     try {
-        const userId = req.user.id; // ✅ جلب المستخدم من `auth`
+        const userId = req.user.id; // ✅ جلب المستخدم من auth
 
-        // ✅ التحقق مما إذا كان `req.user` غير معرف أو فارغ
-        if (!req.user || !req.user.id) {
+        if (!userId) {
             return res.status(401).json({
                 success: false,
                 message: "يجب تسجيل الدخول.",
             });
         }
-        // ✅ تحديد الصفحة والحد الافتراضي إذا لم يتم إرسالهما في الطلب
+
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
-        const skip = (page - 1) * limit; // ✅ حساب عدد العناصر التي يجب تخطيها
+        const skip = (page - 1) * limit;
 
-        // ✅ جلب جميع تفاصيل المنتج، واستبعاد المنتجات المحذوفة (`null`)
+        // ✅ جلب المفضلات مع فلترة المنتجات أو الكورسات المحذوفة
         const favorites = await Favorite.find({ user: userId })
-    .populate({
-        path: "item",
-        select: "-__v",
-        strictPopulate: false, // تعطيل التحقق الصارم
-    })
-            .skip(skip) // ✅ تطبيق `Pagination`
+            .populate({
+                path: "item",
+                match: { isDeleted: false }, // 🔥 التحقق من أن المنتج أو الكورس غير محذوف
+                select: "-__v",
+            })
+            .skip(skip)
             .limit(limit);
 
-        // ✅ تصفية العناصر غير الموجودة (`null`)
+        // ✅ تصفية العناصر غير الموجودة (أي `null`)
         const validFavorites = favorites.filter((fav) => fav.item !== null);
 
-        // ✅ حساب العدد الإجمالي للمفضلات
+        // ✅ حساب العدد الإجمالي بعد التصفية
         const totalFavorites = await Favorite.countDocuments({ user: userId });
 
         res.status(200).json({
             success: true,
             currentPage: page,
-            totalPages: Math.ceil(totalFavorites / limit), // ✅ حساب إجمالي الصفحات
-            totalFavorites: totalFavorites,
+            totalPages: Math.ceil(totalFavorites / limit),
+            totalFavorites: validFavorites.length,
             data: validFavorites.map((fav) => fav.item),
         });
     } catch (error) {

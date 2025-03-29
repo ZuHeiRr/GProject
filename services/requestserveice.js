@@ -155,10 +155,14 @@ exports.getUserRequests = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // 🔍 جلب جميع الطلبات التي أرسلها المستخدم
+        // 🔍 جلب الطلبات مع تصفية الكورسات المحذوفة أثناء `populate`
         const requests = await Request.find({ sender: userId })
-            .populate("course", "title description") // ✅ جلب بيانات الكورس
-            .select("status course createdAt"); // ✅ عرض الحالة فقط
+            .populate({
+                path: "course",
+                select: "title description",
+                match: { _id: { $ne: null } }, // ✅ استبعاد الكورسات المحذوفة
+            })
+            .select("status course createdAt");
 
         res.status(200).json({ success: true, data: requests });
     } catch (error) {
