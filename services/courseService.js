@@ -104,7 +104,7 @@ exports.getCourses = async (req, res) => {
 
         const totalCourses = await Course.countDocuments();
         const courses = await Course.find(query)
-            .populate("instructor", "name")
+            .populate("instructor", "name phone")
             .populate("category", "id name")
             .sort(sortOption)
             .skip(skip)
@@ -136,7 +136,7 @@ exports.getCourses = async (req, res) => {
 exports.getCourse = async (req, res) => {
     try {
         const course = await Course.findById(req.params.id)
-            .populate("instructor", "name")
+            .populate("instructor", "name phone")
             .populate("category", "id name")
             .populate("reviews.user", "name");
 
