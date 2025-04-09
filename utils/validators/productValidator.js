@@ -3,7 +3,6 @@ const { default: slugify } = require("slugify");
 
 const validatorMiddleware = require("../../middelwares/validatorMiddleware");
 const Category = require("../../models/categoryModel");
-const subCategory = require("../../models/subCategoryModel");
 // const { translateAliases } = require("../../models/productModel");
 
 exports.getProductValidator = [
@@ -32,15 +31,6 @@ exports.creatProductValidator = [
     .withMessage("Product description is required")
     .isLength({ max: 2000 })
     .withMessage("Too long description"),
-  check("quantity")
-    .notEmpty()
-    .withMessage("Product quantity is required")
-    .isNumeric()
-    .withMessage("Product quantity must be a number"),
-  check("sold")
-    .optional()
-    .isNumeric()
-    .withMessage("Product quantity must be a number"),
   check("price")
     .notEmpty()
     .withMessage("Product price is required")
@@ -48,23 +38,6 @@ exports.creatProductValidator = [
     .withMessage("Product price must be a number")
     .isLength({ max: 32 })
     .withMessage("To long price"),
-  check("priceAfterDiscount")
-    .optional()
-    .isNumeric()
-    .withMessage("Product priceAfterDiscount must be a number")
-    .toFloat()
-    .custom((value, { req }) => {
-      if (req.body.price <= value) {
-        throw new Error("priceAfterDiscount must be lower than price");
-      }
-      return true;
-    }),
-
-  check("colors")
-    .optional()
-    .isArray()
-    .withMessage("availableColors should be array of string"),
-  check("imageCover").notEmpty().withMessage("Product imageCover is required"),
   check("images")
     .optional()
     .isArray()
@@ -83,49 +56,6 @@ exports.creatProductValidator = [
         }
       })
     ),
-  check("subcategories")
-    .optional()
-    .isMongoId()
-    .withMessage("Invalid ID formate")
-    .custom((subCategoriesId) =>
-      subCategory
-        .find({ _id: { $exists: true, $in: subCategoriesId } })
-        .then((result) => {
-          if (result.length < 1 || result.length !== subCategoriesId.length) {
-            return Promise.reject(new Error(`invalid subCategories ids`));
-          }
-        })
-    )
-    .custom((val, { req }) =>
-      subCategory
-        .find({ category: req.body.category })
-        .then((subcategories) => {
-          const subCategoriesIdsInDB = [];
-          subcategories.forEach((subcategory) => {
-            subCategoriesIdsInDB.push(subcategory._id.toString());
-          });
-          //check if subcategories ids in db include subcategories in req.body (true/false)
-          const checker = (target, arr) => target.every((v) => arr.includes(v));
-          if (!checker(val, subCategoriesIdsInDB)) {
-            return Promise.reject(
-              new Error(`subcategories ids not belong to category`)
-            );
-          }
-        })
-    ),
-  check("brand").optional().isMongoId().withMessage("Invalid ID formate"),
-  check("ratingsAverage")
-    .optional()
-    .isNumeric()
-    .withMessage("ratingsAverage must be a number")
-    .isLength({ min: 1 })
-    .withMessage("Rating must be above or equal 1.0")
-    .isLength({ max: 5 })
-    .withMessage("Rating must be below or equal 5.0"),
-  check("ratingsQuantity")
-    .optional()
-    .isNumeric()
-    .withMessage("ratingsQuantity must be a number"),
 
   validatorMiddleware,
 ];

@@ -1,5 +1,4 @@
 const nodemailer = require("nodemailer");
-
 // Nodemailer
 const sendEmail = async (options) => {
   // 1) Create transporter ( service that will send email like "gmail","Mailgun", "mialtrap", sendGrid)

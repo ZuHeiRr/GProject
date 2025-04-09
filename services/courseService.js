@@ -1,7 +1,31 @@
 const mongoose = require("mongoose");
-
+const { v4: uuidv4 } = require("uuid");
+const sharp = require("sharp");
+const asyncHandler = require("express-async-handler");
 const Course = require("../models/Course");
-const Category = require("../models/categoryModel"); // استدعاء موديل الفئات
+const Category = require("../models/categoryModel");
+const { uploadSingleImage } = require("../middelwares/uploadImageMiddleware");
+
+// Upload single image
+exports.uploadUserImage = uploadSingleImage("profileImg");
+
+// Image processing
+exports.resizeImage = asyncHandler(async (req, res, next) => {
+    const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
+
+    if (req.file) {
+        await sharp(req.file.buffer)
+            .resize(600, 600)
+            .toFormat("jpeg")
+            .jpeg({ quality: 95 })
+            .toFile(`upload/user/${filename}`);
+
+        // Save image into our db
+        req.body.profileImg = filename;
+    }
+
+    next();
+});
 
 // 🟢 إضافة كورس جديد
 exports.createCourse = async (req, res) => {
@@ -10,7 +34,7 @@ exports.createCourse = async (req, res) => {
             title,
             description,
             price,
-            category, // ✅ التحقق من هذه الفئة
+            category,
             lessons,
             location,
             language,
@@ -24,10 +48,9 @@ exports.createCourse = async (req, res) => {
         if (!existingCategory) {
             return res
                 .status(400)
-                .json({ success: false, message: "Invalid category ID" });
+                .json({ success: false, message: "معرف الفئة غير صالح" });
         }
 
-        
         // ✅ إنشاء الكورس فقط إذا كانت الفئة صحيحة
         const course = await Course.create({
             title,
@@ -49,6 +72,7 @@ exports.createCourse = async (req, res) => {
     }
 };
 
+// 🟢 الحصول على جميع الكورسات مع الفلترة والترتيب
 exports.getCourses = async (req, res) => {
     try {
         const query = {};
@@ -57,56 +81,50 @@ exports.getCourses = async (req, res) => {
             query.title = { $regex: req.query.title, $options: "i" };
         }
 
-        // 🟠 2️⃣ الفلترة حسب الفئة (`category` يجب أن يكون `ObjectId`)
+        // الفلترة حسب الفئة
         if (req.query.category) {
             if (!mongoose.isValidObjectId(req.query.category)) {
                 return res
                     .status(400)
-                    .json({ success: false, message: "Invalid category ID" });
+                    .json({ success: false, message: "معرف الفئة غير صالح" });
             }
             query.category = req.query.category;
         }
 
-        // 🔵 3️⃣ ترتيب النتائج حسب عدد المشاهدات (`views`)
+        // ترتيب النتائج حسب عدد المشاهدات
         const sortOption = {};
         if (req.query.views) {
             sortOption.views = -1; // ترتيب تنازلي (الأكثر مشاهدة أولًا)
         }
 
-        // 🟣 4️⃣ `Pagination`
+        // التقسيم إلى صفحات
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
         const skip = (page - 1) * limit;
 
-        // ✅ حساب العدد الإجمالي للكورسات
         const totalCourses = await Course.countDocuments();
-
-        // 🔍 تنفيذ الاستعلام
         const courses = await Course.find(query)
-            .populate("instructor", "name phone")
-            .populate("category", "id name") // ✅ جلب اسم الـ category و الـ ID فقط
+            .populate("instructor", "name")
+            .populate("category", "id name")
             .sort(sortOption)
             .skip(skip)
             .limit(limit);
 
-        // 🛑 إذا لم يتم العثور على أي نتائج
         if (!courses.length) {
-            return res.status(200).json({
+            return res.status(404).json({
                 success: false,
-                message: "No courses found matching the criteria",
+                message: "لا توجد كورسات تطابق معايير البحث",
             });
         }
 
-        // 🔍 حساب عدد الصفحات
         const total = await Course.countDocuments(query);
 
         res.status(200).json({
             success: true,
             totalPages: Math.ceil(total / limit),
             currentPage: page,
-            totalCourses, // ✅ العدد الإجمالي للكورسات
-            countInPage: courses.length, // ✅ عدد الكورسات في الصفحة الحالية
-
+            totalCourses,
+            countInPage: courses.length,
             data: courses,
         });
     } catch (error) {
@@ -118,15 +136,16 @@ exports.getCourses = async (req, res) => {
 exports.getCourse = async (req, res) => {
     try {
         const course = await Course.findById(req.params.id)
-            .populate("instructor", "name ")
-            .populate("category", "id name") // ✅ جلب اسم الـ category و الـ ID فقط
-            .populate("reviews.user", "name "); // جلب بيانات المستخدمين الذين أضافوا تقييمات;
+            .populate("instructor", "name")
+            .populate("category", "id name")
+            .populate("reviews.user", "name");
+
         if (!course) {
             return res
                 .status(404)
                 .json({ success: false, message: "الكورس غير موجود" });
         }
-        // ✅ زيادة عدد المشاهدات وجعل الكورس أكثر شهرة
+
         course.views += 1;
         await course.save();
         res.status(200).json({ success: true, data: course });
@@ -146,7 +165,6 @@ exports.updateCourse = async (req, res) => {
                 .json({ success: false, message: "الكورس غير موجود" });
         }
 
-        // التحقق من أن المستخدم هو من أنشأ الكورس
         if (course.instructor.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
@@ -154,7 +172,6 @@ exports.updateCourse = async (req, res) => {
             });
         }
 
-        // تحديث بيانات الكورس
         course = await Course.findByIdAndUpdate(req.params.id, req.body, {
             new: true,
             runValidators: true,
@@ -177,7 +194,6 @@ exports.deleteCourse = async (req, res) => {
                 .json({ success: false, message: "الكورس غير موجود" });
         }
 
-        // التحقق من أن المستخدم هو من أنشأ الكورس
         if (course.instructor.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
@@ -186,21 +202,22 @@ exports.deleteCourse = async (req, res) => {
         }
 
         await course.deleteOne();
-
         res.status(200).json({ success: true, message: "تم حذف الكورس بنجاح" });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// 🟢 طلب الانضمام إلى كورس
 exports.requestEnrollment = async (req, res) => {
     try {
         const course = await Course.findById(req.params.id);
-        if (!course)
+        if (!course) {
             return res
                 .status(404)
                 .json({ success: false, message: "الكورس غير موجود" });
+        }
 
-        // التحقق إذا كان المستخدم مشترك بالفعل
         if (course.students.includes(req.user._id)) {
             return res.status(400).json({
                 success: false,
@@ -208,14 +225,12 @@ exports.requestEnrollment = async (req, res) => {
             });
         }
 
-        // التحقق إذا كان المستخدم أرسل طلبًا مسبقًا
         if (course.pendingRequests.includes(req.user._id)) {
             return res
                 .status(400)
                 .json({ success: false, message: "طلبك قيد الانتظار بالفعل" });
         }
 
-        // إضافة المستخدم إلى الطلبات المعلقة
         course.pendingRequests.push(req.user._id);
         await course.save();
 
@@ -227,22 +242,23 @@ exports.requestEnrollment = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+// 🟢 الموافقة على طلب الانضمام
 exports.approveEnrollment = async (req, res) => {
     try {
         const course = await Course.findById(req.params.id);
-        if (!course)
+        if (!course) {
             return res
                 .status(404)
                 .json({ success: false, message: "الكورس غير موجود" });
+        }
 
-        // التحقق إذا كان المستخدم هو صاحب الكورس
         if (course.instructor.toString() !== req.user._id.toString()) {
             return res
                 .status(403)
                 .json({ success: false, message: "غير مصرح لك بقبول الطلبات" });
         }
 
-        // التحقق إذا كان الطالب في قائمة الطلبات المعلقة
         const { userId } = req.body;
         if (!course.pendingRequests.includes(userId)) {
             return res.status(400).json({
@@ -251,7 +267,6 @@ exports.approveEnrollment = async (req, res) => {
             });
         }
 
-        // نقل المستخدم إلى قائمة الطلاب
         course.pendingRequests = course.pendingRequests.filter(
             (id) => id.toString() !== userId
         );
