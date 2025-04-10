@@ -1,6 +1,8 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+const cors = require("cors");
+const compression = require("compression");
 
 dotenv.config({ path: "config.env" });
 const globalError = require("./middelwares/errorMiddleware");
@@ -41,6 +43,13 @@ app.use("/api/v1/courses", courseRoutes);
 app.use("/api/v1/requests", requestRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
 app.use("/api/v1/courses", reviewRoutes);
+
+// Enable other domains to access your application
+app.use(cors());
+app.options("*", cors());
+
+// compress all responses
+app.use(compression());
 
 app.all("*", (req, res, next) => {
   //creat error and send it to error handling middleware

@@ -25,12 +25,15 @@ const { protect, allowedTo } = require("../services/authService");
 
 const router = express.Router();
 router.use(protect);
+<<<<<<< HEAD
 router.get("/getMe", getLoggedUserData, getUser);
 router.put("/changeMyPassword", updateLoggedUserPassword);
 router.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
 router.delete("/deleteMe", deleteLoggedUserData);
 
 // admin
+=======
+>>>>>>> omar
 router.use(allowedTo("admin", "manager"));
 
 router.put(
