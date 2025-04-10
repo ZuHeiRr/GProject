@@ -9,6 +9,9 @@
   },
   "keywords": [],
   "author": "",
+  "engines": {
+    "node": "20.15.0"
+  },
   "license": "ISC",
   "devDependencies": {
     "cross-env": "^7.0.3",
