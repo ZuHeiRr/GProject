@@ -6,25 +6,52 @@ const Course = require("../models/Course");
 const Category = require("../models/categoryModel"); // استدعاء موديل الفئات
 const { uploadSingleImage } = require("../middelwares/uploadImageMiddleware");
 
-// Upload single image
-exports.uploadUserImage = uploadSingleImage("profileImg");
+exports.uploadProductImages = uploadSingleImage([
+  // {
+  //   name: "imageCover",
+  //   maxCount: 1,
+  // },
+  {
+    name: "images",
+    maxCount: 5,
+  },
+]);
 
-// Image processing
-exports.resizeImage = asyncHandler(async (req, res, next) => {
-  const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
+exports.resizeProductImages = asyncHandler(async (req, res, next) => {
+  // console.log(req.files);
+  //1- Image processing for imageCover
+  // if (req.files.imageCover) {
+  //   const imageCoverFileName = `product-${uuidv4()}-${Date.now()}-cover.jpeg`;
 
-  if (req.file) {
-    await sharp(req.file.buffer)
-      .resize(600, 600)
-      .toFormat("jpeg")
-      .jpeg({ quality: 95 })
-      .toFile(`upload/user/${filename}`);
+  //   await sharp(req.files.imageCover[0].buffer)
+  //     .resize(2000, 1333)
+  //     .toFormat("jpeg")
+  //     .jpeg({ quality: 95 })
+  //     .toFile(`upload/products/${imageCoverFileName}`);
 
-    // Save image into our db
-    req.body.profileImg = filename;
+  //   // Save image into our db
+  //   req.body.imageCover = imageCoverFileName;
+  // }
+  //2- Image processing for images
+  if (req.files.images) {
+    req.body.images = [];
+    await Promise.all(
+      req.files.images.map(async (img, index) => {
+        const imageName = `course-${uuidv4()}-${Date.now()}-${index + 1}.jpeg`;
+
+        await sharp(img.buffer)
+          .resize(2000, 1333)
+          .toFormat("jpeg")
+          .jpeg({ quality: 95 })
+          .toFile(`upload/courses/${imageName}`);
+
+        // Save image into our db
+        req.body.images.push(imageName);
+      })
+    );
+
+    next();
   }
-
-  next();
 });
 
 // 🟢 إضافة كورس جديد
@@ -45,11 +72,11 @@ exports.createCourse = async (req, res) => {
 
     // 🔍 التحقق مما إذا كانت الفئة موجودة في قاعدة البيانات
     const existingCategory = await Category.findById(category);
-    if (!existingCategory) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid category ID" });
-    }
+    // if (!existingCategory) {
+    //   return res
+    //     .status(400)
+    //     .json({ success: false, message: "Invalid category ID" });
+    // }
 
     // ✅ إنشاء الكورس فقط إذا كانت الفئة صحيحة
     const course = await Course.create({
@@ -65,6 +92,28 @@ exports.createCourse = async (req, res) => {
       images,
       instructor: req.user._id, // ربط الكورس بالمستخدم الذي أنشأه
     });
+    // ✅ تحويل بعض الحقول إلى JSON إن كانت موجودة كسلاسل نصية
+    if (typeof req.body.lessons === "string") {
+      try {
+        req.body.lessons = JSON.parse(req.body.lessons);
+      } catch (e) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid lessons format" });
+      }
+    }
+
+    if (typeof req.body.pendingRequests === "string") {
+      req.body.pendingRequests = JSON.parse(req.body.pendingRequests);
+    }
+
+    if (typeof req.body.students === "string") {
+      req.body.students = JSON.parse(req.body.students);
+    }
+
+    if (typeof req.body.reviews === "string") {
+      req.body.reviews = JSON.parse(req.body.reviews);
+    }
 
     res.status(201).json({ success: true, data: course });
   } catch (error) {

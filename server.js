@@ -42,7 +42,7 @@ app.use("/api/v1/favorites", favoriteRoutes);
 app.use("/api/v1/courses", courseRoutes);
 app.use("/api/v1/requests", requestRoutes);
 app.use("/api/v1/reviews", reviewRoutes);
-app.use("/api/v1/courses", reviewRoutes);
+// app.use("/api/v1/courses", reviewRoutes);
 
 // Enable other domains to access your application
 app.use(cors());
