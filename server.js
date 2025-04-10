@@ -50,6 +50,9 @@ app.options("*", cors());
 
 // compress all responses
 app.use(compression());
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "success", message: "API is running 🚀" });
+});
 
 app.all("*", (req, res, next) => {
   //creat error and send it to error handling middleware
