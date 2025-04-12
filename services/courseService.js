@@ -6,6 +6,7 @@ const Course = require("../models/Course");
 const Category = require("../models/categoryModel");
 const { uploadSingleImage } = require("../middelwares/uploadImageMiddleware");
 
+
 // Upload single image
 exports.uploadUserImage = uploadSingleImage("profileImg");
 
@@ -27,6 +28,8 @@ exports.resizeImage = asyncHandler(async (req, res, next) => {
     next();
 });
 
+
+// 🟢 إضافة كورس جديد
 // 🟢 إضافة كورس جديد
 exports.createCourse = async (req, res) => {
     try {
@@ -66,11 +69,35 @@ exports.createCourse = async (req, res) => {
             instructor: req.user._id, // ربط الكورس بالمستخدم الذي أنشأه
         });
 
+        // ✅ تحويل بعض الحقول إلى JSON إن كانت موجودة كسلاسل نصية
+        if (typeof req.body.lessons === "string") {
+            try {
+                req.body.lessons = JSON.parse(req.body.lessons);
+            } catch (e) {
+                return res
+                    .status(400)
+                    .json({ success: false, message: "Invalid lessons format" });
+            }
+        }
+
+        if (typeof req.body.pendingRequests === "string") {
+            req.body.pendingRequests = JSON.parse(req.body.pendingRequests);
+        }
+
+        if (typeof req.body.students === "string") {
+            req.body.students = JSON.parse(req.body.students);
+        }
+
+        if (typeof req.body.reviews === "string") {
+            req.body.reviews = JSON.parse(req.body.reviews);
+        }
+
         res.status(201).json({ success: true, data: course });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
 
 // 🟢 الحصول على جميع الكورسات مع الفلترة والترتيب
 exports.getCourses = async (req, res) => {
