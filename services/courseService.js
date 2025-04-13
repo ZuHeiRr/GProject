@@ -2,76 +2,62 @@ const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const asyncHandler = require("express-async-handler");
+const factory = require("./handlerFactory");
 const Course = require("../models/Course");
-const Category = require("../models/categoryModel"); // استدعاء موديل الفئات
-const { uploadSingleImage } = require("../middelwares/uploadImageMiddleware");
+// const Category = require("../models/categoryModel"); // استدعاء موديل الفئات
+// const { uploadSingleImage } = require("../middelwares/uploadImageMiddleware");
+const { uploadMixOfImages } = require("../middelwares/uploadImageMiddleware");
+
+exports.uploadProductImages = uploadMixOfImages([
+  // {
+  //   name: "imageCover",
+  //   maxCount: 1,
+  // },
+  {
+    name: "images",
+    maxCount: 5,
+  },
+]);
+
+exports.resizeProductImages = asyncHandler(async (req, res, next) => {
+  // console.log(req.files);
+  //1- Image processing for imageCover
+  // if (req.files.imageCover) {
+  //   const imageCoverFileName = `product-${uuidv4()}-${Date.now()}-cover.jpeg`;
+
+  //   await sharp(req.files.imageCover[0].buffer)
+  //     .resize(2000, 1333)
+  //     .toFormat("jpeg")
+  //     .jpeg({ quality: 95 })
+  //     .toFile(`upload/products/${imageCoverFileName}`);
+
+  //   // Save image into our db
+  //   req.body.imageCover = imageCoverFileName;
+  // }
+  //2- Image processing for images
+  if (req.files.images) {
+    req.body.images = [];
+    await Promise.all(
+      req.files.images.map(async (img, index) => {
+        const imageName = `course-${uuidv4()}-${Date.now()}-${index + 1}.jpeg`;
+
+        await sharp(img.buffer)
+          .resize(2000, 1333)
+          .toFormat("jpeg")
+          .jpeg({ quality: 95 })
+          .toFile(`upload/courses/${imageName}`);
+
+        // Save image into our db
+        req.body.images.push(imageName);
+      })
+    );
+
+    next();
+  }
+});
 
 // 🟢 إضافة كورس جديد
-exports.createCourse = async (req, res) => {
-  try {
-    const {
-      title,
-      description,
-      price,
-      category, // ✅ التحقق من هذه الفئة
-      lessons,
-      location,
-      language,
-      access,
-      certificate,
-      images,
-    } = req.body;
-
-    // 🔍 التحقق مما إذا كانت الفئة موجودة في قاعدة البيانات
-    const existingCategory = await Category.findById(category);
-    // if (!existingCategory) {
-    //   return res
-    //     .status(400)
-    //     .json({ success: false, message: "Invalid category ID" });
-    // }
-
-    // ✅ إنشاء الكورس فقط إذا كانت الفئة صحيحة
-    const course = await Course.create({
-      title,
-      description,
-      price,
-      category,
-      lessons,
-      location,
-      language,
-      access,
-      certificate,
-      images,
-      instructor: req.user._id, // ربط الكورس بالمستخدم الذي أنشأه
-    });
-    // ✅ تحويل بعض الحقول إلى JSON إن كانت موجودة كسلاسل نصية
-    if (typeof req.body.lessons === "string") {
-      try {
-        req.body.lessons = JSON.parse(req.body.lessons);
-      } catch (e) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid lessons format" });
-      }
-    }
-
-    if (typeof req.body.pendingRequests === "string") {
-      req.body.pendingRequests = JSON.parse(req.body.pendingRequests);
-    }
-
-    if (typeof req.body.students === "string") {
-      req.body.students = JSON.parse(req.body.students);
-    }
-
-    if (typeof req.body.reviews === "string") {
-      req.body.reviews = JSON.parse(req.body.reviews);
-    }
-
-    res.status(201).json({ success: true, data: course });
-  } catch (error) {
-    res.status(400).json({ success: false, message: error.message });
-  }
-};
+exports.createCourse = factory.creatOne(Course);
 
 exports.getCourses = async (req, res) => {
   try {
