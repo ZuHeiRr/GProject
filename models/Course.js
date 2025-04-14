@@ -11,13 +11,12 @@ const courseSchema = new mongoose.Schema(
       ref: "Category",
     }, // 🔥 مرتبط بـ Category
     lessons: {
-      title: { type: String, required: true }, // عنوان الدرس
+      title: { type: String }, // عنوان الدرس
     },
 
     instructor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
     }, // المحاضر هو مستخدم
     location: { type: String, required: true }, // موقع الكورس
     ratingsAverage: { type: Number, default: 1, min: 1, max: 5 }, // متوسط التقييمات
