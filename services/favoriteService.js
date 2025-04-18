@@ -71,7 +71,6 @@ exports.getFavorites = async (req, res) => {
         const favorites = await Favorite.find({ user: userId })
             .populate({
                 path: "item",
-                match: { isDeleted: false }, // 🔥 التحقق من أن المنتج أو الكورس غير محذوف
                 select: "-__v",
             })
             .skip(skip)
