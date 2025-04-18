@@ -22,8 +22,8 @@ const reviewRoutes = require("./routes/reviewRoutes");
 
 //connect with db
 dbconnection();
-
 const app = express();
+
 app.use(express.json());
 
 if (process.env.NODE_ENV === "development") {

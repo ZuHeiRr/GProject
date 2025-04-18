@@ -27,13 +27,28 @@ exports.creatOne = (Model) =>
   asyncHandler(async (req, res) => {
     const document = await Model.create(req.body);
     res.status(201).json({ data: document });
-    // const token = req.headers.authorization.split(" ")[1];
-    // const decoded = jwt.verify(token, "SECRET_KEY"); // استخدم المفتاح السري الخاص بك
-    // if (name === "product") {
-    //   document.sellerId = decoded.id;
-    // }
-    // await document.save(); // حفظ التحديث في قاعدة البيانات
   });
+// exports.creatOne = (Model, name) =>
+//   asyncHandler(async (req, res) => {
+//     if (name === "product") {
+//       const token = req.headers.authorization.split(" ")[1];
+//       if (!token) {
+//         return res.status(401).json({ msg: "No token provided" });
+//       }
+
+//       const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+//       if (!decoded.id) {
+//         return res.status(401).json({ msg: "Invalid token" });
+//       }
+
+//       // أضف الـ user ID إلى جسم الطلب
+//       req.body.user = decoded.id;
+//     }
+
+//     const document = await Model.create(req.body);
+//     res.status(201).json({ data: document });
+//   });
+
 exports.getOne = (Model, name) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
