@@ -7,21 +7,15 @@ const {
   deleteCourse,
   requestEnrollment,
   approveEnrollment,
-  uploadProductImages,
-  resizeProductImages,
+  uploadCourseImages,
+  resizeCourseImages,
 } = require("../services/courseService");
 const { protect } = require("../middelwares/authMiddleware");
 
 const router = express.Router();
 
 // إضافة كورس جديد
-router.post(
-  "/",
-  protect,
-  uploadProductImages,
-  resizeProductImages,
-  createCourse
-);
+router.post("/", protect, uploadCourseImages, resizeCourseImages, createCourse);
 
 // جلب جميع الكورسات
 router.get("/", getCourses);

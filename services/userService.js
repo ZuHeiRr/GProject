@@ -7,6 +7,7 @@ const { uploadSingleImage } = require("../middelwares/uploadImageMiddleware");
 const createToken = require("../utils/createToken");
 
 const factory = require("./handlerFactory");
+const cloudinary = require("../cloudinary/cloudi");
 
 const userModel = require("../models/userModel");
 
@@ -14,18 +15,59 @@ const userModel = require("../models/userModel");
 exports.uploadUserImage = uploadSingleImage("profileImg");
 
 // Image processing
-exports.resizeImage = asyncHandler(async (req, res, next) => {
-  const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
+// exports.resizeImage = asyncHandler(async (req, res, next) => {
+//   const filename = `user-${uuidv4()}-${Date.now()}.jpeg`;
 
-  if (req.file) {
-    await sharp(req.file.buffer)
-      .resize(600, 600)
-      .toFormat("jpeg")
-      .jpeg({ quality: 95 })
-      .toFile(`upload/user/${filename}`);
+//   if (req.file) {
+//     await sharp(req.file.buffer)
+//       .resize(600, 600)
+//       .toFormat("jpeg")
+//       .jpeg({ quality: 95 })
+//       .toFile(`upload/user/${filename}`);
 
-    // Save image into our db
-    req.body.profileImg = filename;
+//     // Save image into our db
+//     req.body.profileImg = filename;
+//   }
+
+//   next();
+// });
+
+exports.resizeUserImage = asyncHandler(async (req, res, next) => {
+  if (req.files.images) {
+    req.body.images = [];
+
+    await Promise.all(
+      req.files.images.map(async (img, index) => {
+        const imageName = `product-${uuidv4()}-${Date.now()}-${index + 1}`;
+
+        // تعديل الصورة باستخدام sharp
+        const resizedImageBuffer = await sharp(img.buffer)
+          .resize(2000, 1333)
+          .toFormat("jpeg")
+          .jpeg({ quality: 95 })
+          .toBuffer();
+
+        // رفع الصورة على Cloudinary باستخدام Promise
+        const imageUploadResult = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            {
+              folder: "users",
+              public_id: imageName,
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+
+          stream.end(resizedImageBuffer);
+        });
+
+        // حفظ الرابط في الـ body
+        req.body.images.push(imageUploadResult.secure_url);
+      })
+    );
   }
 
   next();

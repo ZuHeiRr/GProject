@@ -15,7 +15,7 @@ const {
   changeUserPassword,
   deleteUser,
   uploadUserImage,
-  resizeImage,
+  resizeUserImage,
   getLoggedUserData,
   updateLoggedUserPassword,
   updateLoggedUserData,
@@ -43,7 +43,7 @@ router.put(
 router
   .route("/")
   .get(getUsers)
-  .post(uploadUserImage, resizeImage, createUserValidator, creatUser);
+  .post(uploadUserImage, resizeUserImage, createUserValidator, creatUser);
 router
   .route("/:id")
   .get(getUserValidator, getUser)
