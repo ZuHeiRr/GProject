@@ -170,3 +170,37 @@ exports.getUserRequests = async (req, res) => {
     }
 };
 
+// 📌 إلغاء طلب انضمام من قبل المستخدم
+exports.cancelRequest = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { requestId } = req.params;
+
+        // 🔍 التحقق من وجود الطلب
+        const request = await Request.findById(requestId);
+        if (!request) {
+            return res.status(404).json({ message: "الطلب غير موجود" });
+        }
+
+        // ✅ التحقق أن هذا الطلب خاص بالمستخدم الحالي
+        if (request.sender.toString() !== userId) {
+            return res.status(403).json({ message: "لا يمكنك إلغاء هذا الطلب" });
+        }
+
+        // ✅ حذف الطلب
+        await request.deleteOne();
+
+        // ✅ حذف المستخدم من pendingRequests داخل الكورس
+        const course = await Course.findById(request.course);
+        if (course) {
+            course.pendingRequests = course.pendingRequests.filter(
+                (id) => id.toString() !== userId
+            );
+            await course.save();
+        }
+
+        res.status(200).json({ message: "تم إلغاء الطلب بنجاح" });
+    } catch (error) {
+        res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+};

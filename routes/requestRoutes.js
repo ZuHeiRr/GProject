@@ -5,6 +5,7 @@ const {
     approveRequest,
     rejectRequest,
     getUserRequests,
+    cancelRequest,
 } = require("../services/requestserveice");
 const { protect } = require("../middelwares/authMiddleware");
 
@@ -23,7 +24,7 @@ router.post("/approve/:requestId", protect, approveRequest);
 // 📌 رفض الطلب
 router.post("/reject/:requestId", protect, rejectRequest);
 
-
+router.delete("/:requestId/cancel", protect, cancelRequest);
 
 
 module.exports = router;
