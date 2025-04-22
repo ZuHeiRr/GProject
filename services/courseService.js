@@ -201,8 +201,7 @@ exports.getCourse = async (req, res) => {
         .json({ success: false, message: "الكورس غير موجود" });
     }
 
-    course.views += 1;
-    await course.save();
+
     res.status(200).json({ success: true, data: course });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -336,3 +335,29 @@ exports.approveEnrollment = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// 🔥 لزيادة عدد المشاهدات
+exports.increaseCourseViews = async (req, res) => {
+    try {
+        const course = await Course.findByIdAndUpdate(
+            req.params.id,
+            { $inc: { views: 1 } },
+            { new: true }
+        );
+
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: "الكورس غير موجود",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "تم تحديث عدد المشاهدات",
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+

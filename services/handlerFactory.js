@@ -53,10 +53,7 @@ exports.getOne = (Model, name) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const document = await Model.findById(id);
-    if (name === "product") {
-      document.visit += 1; // زيادة العدد
-      await document.save(); // حفظ التحديث في قاعدة البيانات
-    }
+
     if (!document) {
       return next(new ApiError(`No subCategory for this id ${id}`, 404));
     }

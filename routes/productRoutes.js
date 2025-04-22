@@ -6,13 +6,14 @@ const {
   deletProductValidator,
 } = require("../utils/validators/productValidator");
 const {
-  getProducts,
-  creatProduct,
-  getProduct,
-  updateProduct,
-  deletProduct,
-  uploadProductImages,
-  resizeProductImages,
+    getProducts,
+    creatProduct,
+    getProduct,
+    updateProduct,
+    deletProduct,
+    uploadProductImages,
+    resizeProductImages,
+    increaseProductViews,
 } = require("../services/productService");
 const { protect, allowedTo } = require("../services/authService");
 
@@ -43,4 +44,5 @@ router
     deletProductValidator,
     deletProduct
   );
+  router.patch("/:id/views", increaseProductViews);
 module.exports = router;

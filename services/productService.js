@@ -131,3 +131,28 @@ exports.deletProduct = factory.deleteOne(productModel);
 //   }
 //   res.status(204).send();
 // });
+
+exports.increaseProductViews = async (req, res) => {
+    try {
+        const product = await productModel.findByIdAndUpdate(
+            req.params.id,
+            { $inc: { visit: 1 } },
+            { new: true }
+        );
+
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "المنتج غير موجود",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "تم تحديث عدد المشاهدات",
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
