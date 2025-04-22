@@ -10,9 +10,10 @@ const courseSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Category",
         }, // 🔥 مرتبط بـ Category
-        lessons: {
+        lessons:[ {
             title: { type: String, required: true }, // عنوان الدرس
         },
+    ],
 
         instructor: {
             type: mongoose.Schema.Types.ObjectId,
