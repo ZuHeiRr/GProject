@@ -58,8 +58,9 @@ exports.addFavorite = async (req, res) => {
 // @access  Private
 exports.getFavorites = async (req, res) => {
   try {
-    const userId = req.user.id; // ✅ جلب المستخدم من auth
+    const userId = req.user.id; // جلب المستخدم من auth
 
+    // تحقق من وجود المستخدم
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -67,25 +68,27 @@ exports.getFavorites = async (req, res) => {
       });
     }
 
+    // تحديد الصفحة والحد الأقصى من النتائج
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 10;
     const skip = (page - 1) * limit;
 
-    // ✅ جلب المفضلات مع فلترة المنتجات أو الكورسات المحذوفة
+    // جلب المفضلات مع فلترة المنتجات أو الكورسات المحذوفة
     const favorites = await Favorite.find({ user: userId })
       .populate({
         path: "item",
-        select: "-__v",
+        select: "-__v", // تجاهل الـ __v في البيانات المسترجعة
       })
       .skip(skip)
       .limit(limit);
 
-    // ✅ تصفية العناصر غير الموجودة (أي `null`)
+    // تصفية العناصر التي تكون غير موجودة (أي `null`)
     const validFavorites = favorites.filter((fav) => fav.item !== null);
 
-    // ✅ حساب العدد الإجمالي بعد التصفية
+    // حساب العدد الإجمالي للمفضلات بعد التصفية
     const totalFavorites = await Favorite.countDocuments({ user: userId });
 
+    // إرجاع البيانات في الاستجابة
     res.status(200).json({
       success: true,
       currentPage: page,
@@ -94,6 +97,7 @@ exports.getFavorites = async (req, res) => {
       data: validFavorites.map((fav) => fav.item),
     });
   } catch (error) {
+    // التعامل مع الأخطاء
     res.status(500).json({ success: false, error: error.message });
   }
 };
