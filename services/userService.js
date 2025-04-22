@@ -31,43 +31,36 @@ exports.uploadUserImage = uploadSingleImage("profileImg");
 
 //   next();
 // });
-
 exports.resizeUserImage = asyncHandler(async (req, res, next) => {
-  if (req.files.images) {
-    req.body.images = [];
+  //const file = req.file; // ✅ تم التعديل هنا
+  const { file } = req;
 
-    await Promise.all(
-      req.files.images.map(async (img, index) => {
-        const imageName = `product-${uuidv4()}-${Date.now()}-${index + 1}`;
+  if (file) {
+    const imageName = `user-${uuidv4()}-${Date.now()}`;
 
-        // تعديل الصورة باستخدام sharp
-        const resizedImageBuffer = await sharp(img.buffer)
-          .resize(2000, 1333)
-          .toFormat("jpeg")
-          .jpeg({ quality: 95 })
-          .toBuffer();
+    const resizedImageBuffer = await sharp(file.buffer)
+      .resize(500, 500)
+      .toFormat("jpeg")
+      .jpeg({ quality: 90 })
+      .toBuffer();
 
-        // رفع الصورة على Cloudinary باستخدام Promise
-        const imageUploadResult = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            {
-              folder: "users",
-              public_id: imageName,
-              resource_type: "image",
-            },
-            (error, result) => {
-              if (error) reject(error);
-              else resolve(result);
-            }
-          );
+    const imageUploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder: "users",
+          public_id: imageName,
+          resource_type: "image",
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
 
-          stream.end(resizedImageBuffer);
-        });
+      stream.end(resizedImageBuffer);
+    });
 
-        // حفظ الرابط في الـ body
-        req.body.images.push(imageUploadResult.secure_url);
-      })
-    );
+    req.body.profileImg = imageUploadResult.secure_url;
   }
 
   next();
