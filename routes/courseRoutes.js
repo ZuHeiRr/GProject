@@ -1,14 +1,15 @@
 const express = require("express");
 const {
-  createCourse,
-  getCourses,
-  getCourse,
-  updateCourse,
-  deleteCourse,
-  requestEnrollment,
-  approveEnrollment,
-  uploadCourseImages,
-  resizeCourseImages,
+    createCourse,
+    getCourses,
+    getCourse,
+    updateCourse,
+    deleteCourse,
+    requestEnrollment,
+    approveEnrollment,
+    uploadCourseImages,
+    resizeCourseImages,
+    increaseCourseViews,
 } = require("../services/courseService");
 const { protect } = require("../middelwares/authMiddleware");
 
@@ -34,5 +35,9 @@ router.post("/:id/request", protect, requestEnrollment);
 
 // 🔒 قبول الطلب (متاح فقط لناشر الكورس)
 router.post("/:id/approve", protect, approveEnrollment);
+
+
+// زيادة عدد مشاهدات كورس معين
+router.patch("/:id/views", increaseCourseViews);
 
 module.exports = router;
