@@ -75,6 +75,15 @@ exports.createCourse = async (req, res) => {
       images,
     } = req.body;
 
+    const detailsMap = new Map();
+    Object.keys(req.body).forEach((key) => {
+        const match = key.match(/^details\[(.+)\]$/);
+        if (match) {
+            detailsMap.set(match[1], req.body[key]);
+        }
+    });
+    req.body.details = detailsMap;
+
     // 🔍 التحقق مما إذا كانت الفئة موجودة في قاعدة البيانات
     const existingCategory = await Category.findById(category);
     if (!existingCategory) {
@@ -85,17 +94,18 @@ exports.createCourse = async (req, res) => {
 
     // ✅ إنشاء الكورس فقط إذا كانت الفئة صحيحة
     const course = await Course.create({
-      title,
-      description,
-      price,
-      category,
-      lessons,
-      location,
-      language,
-      access,
-      certificate,
-      images,
-      instructor: req.user._id, // ربط الكورس بالمستخدم الذي أنشأه
+        title,
+        description,
+        price,
+        category,
+        lessons,
+        location,
+        language,
+        access,
+        certificate,
+        images,
+        instructor: req.user._id, // ربط الكورس بالمستخدم الذي أنشأه
+        details: req.body.details,
     });
 
     // ✅ تحويل بعض الحقول إلى JSON إن كانت موجودة كسلاسل نصية
