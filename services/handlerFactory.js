@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiErrors");
 const ApiFeatures = require("../utils/apiFeatures");
+const productModel = require("../models/productModel");
 
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
@@ -25,21 +26,22 @@ exports.updateOne = (Model) =>
 
 exports.creatOne = (Model, name) =>
     asyncHandler(async (req, res) => {
+        // ✅ تأكد إننا بنتعامل مع Product Model
         if (name === "Product") {
-          if (typeof req.body.details === "string") {
-              try {
-                  const obj = JSON.parse(req.body.details);
-                  req.body.details = new Map(Object.entries(obj));
-              } catch (err) {
-                  return res
-                      .status(400)
-                      .json({
-                          success: false,
-                          message: "Invalid details JSON",
-                      });
-              }
-          }
+            if (req.body.details && typeof req.body.details === "string") {
+                try {
+                    const parsedDetails = JSON.parse(req.body.details); // parse
+                    req.body.details = parsedDetails; // أرسلها كـ object فقط ❗❗
+                    // ❌ متحولهاش Map هنا، خليه Mongoose يتصرف لوحده
+                } catch (err) {
+                    return res.status(400).json({
+                        status: "error",
+                        message: "Invalid JSON in details field",
+                    });
+                }
+            }
         }
+
         const document = await Model.create(req.body);
         res.status(201).json({ data: document });
     });
