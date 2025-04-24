@@ -26,13 +26,12 @@ exports.updateOne = (Model) =>
 
 exports.creatOne = (Model, name) =>
     asyncHandler(async (req, res) => {
-        // ✅ تأكد إننا بنتعامل مع Product Model
+        // ✅ لو الموديل هو Product
         if (name === "Product") {
             if (req.body.details && typeof req.body.details === "string") {
                 try {
-                    const parsedDetails = JSON.parse(req.body.details); // parse
-                    req.body.details = parsedDetails; // أرسلها كـ object فقط ❗❗
-                    // ❌ متحولهاش Map هنا، خليه Mongoose يتصرف لوحده
+                    // ✅ نحول details من string إلى object
+                    req.body.details = JSON.parse(req.body.details);
                 } catch (err) {
                     return res.status(400).json({
                         status: "error",
@@ -42,6 +41,7 @@ exports.creatOne = (Model, name) =>
             }
         }
 
+        // ✅ إنشاء المستند
         const document = await Model.create(req.body);
         res.status(201).json({ data: document });
     });
