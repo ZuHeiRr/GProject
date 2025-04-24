@@ -23,11 +23,22 @@ exports.updateOne = (Model) =>
     res.status(200).json({ data: document });
   });
 
-exports.creatOne = (Model) =>
-  asyncHandler(async (req, res) => {
-    const document = await Model.create(req.body);
-    res.status(201).json({ data: document });
-  });
+exports.creatOne = (Model, name) =>
+    asyncHandler(async (req, res) => {
+        if (name === "Product") {
+            if (req.body.details && typeof req.body.details === "string") {
+                try {
+                    req.body.details = JSON.parse(req.body.details);
+                } catch (err) {
+                    return res
+                        .status(400)
+                        .json({ message: "Invalid JSON in details field" });
+                }
+            }
+        }
+        const document = await Model.create(req.body);
+        res.status(201).json({ data: document });
+    });
 // exports.creatOne = (Model, name) =>
 //   asyncHandler(async (req, res) => {
 //     if (name === "product") {
