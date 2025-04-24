@@ -84,14 +84,10 @@ exports.createCourse = async (req, res) => {
                   .json({ success: false, message: "Invalid lessons format" });
           }
       }
-      const detailsMap = new Map();
-      Object.keys(req.body).forEach((key) => {
-          const match = key.match(/^details\[(.+)\]$/);
-          if (match) {
-              detailsMap.set(match[1], req.body[key]);
-          }
-      });
-      req.body.details = detailsMap;
+if (typeof req.body.details === "string") {
+    req.body.details = new Map(Object.entries(JSON.parse(req.body.details)));
+}
+
 
       // 🔍 التحقق مما إذا كانت الفئة موجودة في قاعدة البيانات
       const existingCategory = await Category.findById(category);
