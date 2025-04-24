@@ -110,7 +110,7 @@ exports.getProduct = factory.getOne(productModel, "product");
 //@desc Creagt product
 //@route POST /api/v1/products
 //@access Private
-exports.creatProduct = factory.creatOne(productModel);
+exports.creatProduct = factory.creatOne(productModel, "Product");
 
 //@desc update spacific product
 //@route PUT /api/v1/products/:id
