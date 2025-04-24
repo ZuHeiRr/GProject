@@ -26,14 +26,17 @@ exports.updateOne = (Model) =>
 exports.creatOne = (Model, name) =>
     asyncHandler(async (req, res) => {
         if (name === "Product") {
-          if (req.body.details && typeof req.body.details === "string") {
+          if (typeof req.body.details === "string") {
               try {
-                  req.body.details = JSON.parse(req.body.details); // نحولها من string إلى object
+                  const obj = JSON.parse(req.body.details);
+                  req.body.details = new Map(Object.entries(obj));
               } catch (err) {
-                  return res.status(400).json({
-                      status: "error",
-                      message: "Invalid JSON in details field",
-                  });
+                  return res
+                      .status(400)
+                      .json({
+                          success: false,
+                          message: "Invalid details JSON",
+                      });
               }
           }
         }
