@@ -84,10 +84,18 @@ exports.createCourse = async (req, res) => {
                   .json({ success: false, message: "Invalid lessons format" });
           }
       }
-if (typeof req.body.details === "string") {
-    req.body.details = new Map(Object.entries(JSON.parse(req.body.details)));
-}
-
+      // لو details وصلت كـ string
+      if (typeof req.body.details === "string") {
+          try {
+              const obj = JSON.parse(req.body.details);
+              // نستخدم Map عشان يتوافق مع schema الـ Map
+              req.body.details = new Map(Object.entries(obj));
+          } catch (err) {
+              return res
+                  .status(400)
+                  .json({ success: false, message: "Invalid details JSON" });
+          }
+      }
 
       // 🔍 التحقق مما إذا كانت الفئة موجودة في قاعدة البيانات
       const existingCategory = await Category.findById(category);
