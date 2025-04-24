@@ -26,8 +26,12 @@ exports.updateOne = (Model) =>
 
 exports.creatOne = (Model, name) =>
     asyncHandler(async (req, res) => {
+        
         // ✅ لو الموديل هو Product
         if (name === "Product") {
+            if (!req.body.user) {
+                req.body.user = req.user; // إضافة الـ user ID من الـ JWT
+            }
             if (req.body.details && typeof req.body.details === "string") {
                 try {
                     // ✅ نحول details من string إلى object
