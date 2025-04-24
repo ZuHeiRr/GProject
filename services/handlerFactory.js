@@ -26,15 +26,17 @@ exports.updateOne = (Model) =>
 exports.creatOne = (Model, name) =>
     asyncHandler(async (req, res) => {
         if (name === "Product") {
-            if (req.body.details && typeof req.body.details === "string") {
-                try {
-                    req.body.details = JSON.parse(req.body.details);
-                } catch (err) {
-                    return res
-                        .status(400)
-                        .json({ message: "Invalid JSON in details field" });
-                }
-            }
+           if (req.body.details && typeof req.body.details === "string") {
+               try {
+                   req.body.details = JSON.parse(req.body.details); // هنا نعمل parsing
+               } catch (err) {
+                   return res
+                       .status(400)
+                       .json({
+                           message: "Invalid JSON format in details field",
+                       });
+               }
+           }
         }
         const document = await Model.create(req.body);
         res.status(201).json({ data: document });
