@@ -35,6 +35,16 @@ router
 router
   .route("/:id")
   .get(getCategoryValidator, getCategory)
-  .put(updateCategoryValidator, updateCategory)
-  .delete(deletCategoryValidator, deletCategory);
+  .put(
+    protect,
+    allowedTo("admin", "manager"),
+    updateCategoryValidator,
+    updateCategory
+  )
+  .delete(
+    protect,
+    allowedTo("admin", "manager"),
+    deletCategoryValidator,
+    deletCategory
+  );
 module.exports = router;

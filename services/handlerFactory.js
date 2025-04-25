@@ -7,7 +7,7 @@ exports.deleteOne = (Model) =>
     const { id } = req.params;
     const document = await Model.findByIdAndDelete(id);
     if (!document) {
-      return next(new ApiError(`No brand for this id ${id}`, 404));
+      return next(new ApiError(`No document  for this id ${id}`, 404));
     }
     res.status(204).send();
   });
@@ -18,7 +18,9 @@ exports.updateOne = (Model) =>
       new: true,
     });
     if (!document) {
-      return next(new ApiError(`No brand for this id ${req.params.id}`, 404));
+      return next(
+        new ApiError(`No document  for this id ${req.params.id}`, 404)
+      );
     }
     res.status(200).json({ data: document });
   });
@@ -49,13 +51,13 @@ exports.creatOne = (Model) =>
 //     res.status(201).json({ data: document });
 //   });
 
-exports.getOne = (Model, name) =>
+exports.getOne = (Model) =>
   asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const document = await Model.findById(id);
 
     if (!document) {
-      return next(new ApiError(`No subCategory for this id ${id}`, 404));
+      return next(new ApiError(`No document  for this id ${id}`, 404));
     }
     res.status(200).json({ data: document });
   });

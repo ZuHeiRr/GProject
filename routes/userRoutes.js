@@ -32,7 +32,7 @@ router.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
 router.delete("/deleteMe", deleteLoggedUserData);
 
 // admin
-// router.use(allowedTo("admin", "manager"));
+router.use(allowedTo("admin", "manager"));
 
 router.put(
   "/changePassword/:id",

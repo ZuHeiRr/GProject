@@ -58,7 +58,6 @@ exports.protect = asyncHandler(async (req, res, next) => {
   }
   // 2) Verify token (no change happens, expired token)
   const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-  console.log(decoded);
 
   // 3) Check if user exists
   const currentUser = await User.findById(decoded.userId);
