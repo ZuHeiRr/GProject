@@ -62,66 +62,78 @@ exports.resizeCourseImages = asyncHandler(async (req, res, next) => {
 
 exports.createCourse = async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      price,
-      category,
-      lessons,
-      location,
-      language,
-      access,
-      certificate,
-      images,
-    } = req.body;
-
-    // 🔍 التحقق مما إذا كانت الفئة موجودة في قاعدة البيانات
-    const existingCategory = await Category.findById(category);
-    if (!existingCategory) {
-      return res
-        .status(400)
-        .json({ success: false, message: "معرف الفئة غير صالح" });
-    }
-
-    // ✅ إنشاء الكورس فقط إذا كانت الفئة صحيحة
-    const course = await Course.create({
-      title,
-      description,
-      price,
-      category,
-      lessons,
-      location,
-      language,
-      access,
-      certificate,
-      images,
-      instructor: req.user._id, // ربط الكورس بالمستخدم الذي أنشأه
-    });
-
-    // ✅ تحويل بعض الحقول إلى JSON إن كانت موجودة كسلاسل نصية
-    if (typeof req.body.lessons === "string") {
-      try {
-        req.body.lessons = JSON.parse(req.body.lessons);
-      } catch (e) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid lessons format" });
+      const {
+          title,
+          description,
+          price,
+          category,
+          lessons,
+          location,
+          language,
+          access,
+          certificate,
+          images,
+      } = req.body;
+      // ✅ تحويل بعض الحقول إلى JSON إن كانت موجودة كسلاسل نصية
+      if (typeof req.body.lessons === "string") {
+          try {
+              req.body.lessons = JSON.parse(req.body.lessons);
+          } catch (e) {
+              return res
+                  .status(400)
+                  .json({ success: false, message: "Invalid lessons format" });
+          }
       }
-    }
+      // لو details وصلت كـ string
+      if (typeof req.body.details === "string") {
+          try {
+              const obj = JSON.parse(req.body.details);
+              // نستخدم Map عشان يتوافق مع schema الـ Map
+              req.body.details = new Map(Object.entries(obj));
+          } catch (err) {
+              return res
+                  .status(400)
+                  .json({ success: false, message: "Invalid details JSON" });
+          }
+      }
 
-    if (typeof req.body.pendingRequests === "string") {
-      req.body.pendingRequests = JSON.parse(req.body.pendingRequests);
-    }
+      // 🔍 التحقق مما إذا كانت الفئة موجودة في قاعدة البيانات
+      const existingCategory = await Category.findById(category);
+      if (!existingCategory) {
+          return res
+              .status(400)
+              .json({ success: false, message: "معرف الفئة غير صالح" });
+      }
 
-    if (typeof req.body.students === "string") {
-      req.body.students = JSON.parse(req.body.students);
-    }
+      // ✅ إنشاء الكورس فقط إذا كانت الفئة صحيحة
+      const course = await Course.create({
+          title,
+          description,
+          price,
+          category,
+          lessons,
+          location,
+          language,
+          access,
+          certificate,
+          images,
+          instructor: req.user._id, // ربط الكورس بالمستخدم الذي أنشأه
+          details: req.body.details,
+      });
 
-    if (typeof req.body.reviews === "string") {
-      req.body.reviews = JSON.parse(req.body.reviews);
-    }
+      if (typeof req.body.pendingRequests === "string") {
+          req.body.pendingRequests = JSON.parse(req.body.pendingRequests);
+      }
 
-    res.status(201).json({ success: true, data: course });
+      if (typeof req.body.students === "string") {
+          req.body.students = JSON.parse(req.body.students);
+      }
+
+      if (typeof req.body.reviews === "string") {
+          req.body.reviews = JSON.parse(req.body.reviews);
+      }
+
+      res.status(201).json({ success: true, data: course });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }

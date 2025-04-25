@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiErrors");
 const ApiFeatures = require("../utils/apiFeatures");
+const productModel = require("../models/productModel");
 
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
@@ -25,11 +26,31 @@ exports.updateOne = (Model) =>
     res.status(200).json({ data: document });
   });
 
-exports.creatOne = (Model) =>
-  asyncHandler(async (req, res) => {
-    const document = await Model.create(req.body);
-    res.status(201).json({ data: document });
-  });
+exports.creatOne = (Model, name) =>
+    asyncHandler(async (req, res) => {
+        
+        // ✅ لو الموديل هو Product
+        if (name === "Product") {
+            if (!req.body.user) {
+                req.body.user = req.user; // إضافة الـ user ID من الـ JWT
+            }
+            if (req.body.details && typeof req.body.details === "string") {
+                try {
+                    // ✅ نحول details من string إلى object
+                    req.body.details = JSON.parse(req.body.details);
+                } catch (err) {
+                    return res.status(400).json({
+                        status: "error",
+                        message: "Invalid JSON in details field",
+                    });
+                }
+            }
+        }
+
+        // ✅ إنشاء المستند
+        const document = await Model.create(req.body);
+        res.status(201).json({ data: document });
+    });
 // exports.creatOne = (Model, name) =>
 //   asyncHandler(async (req, res) => {
 //     if (name === "product") {
