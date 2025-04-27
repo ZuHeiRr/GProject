@@ -142,58 +142,67 @@ exports.createCourse = async (req, res) => {
 // 🟢 الحصول على جميع الكورسات مع الفلترة والترتيب
 exports.getCourses = async (req, res) => {
   try {
-    const query = {};
+      const query = {};
 
-    if (req.query.title) {
-      query.title = { $regex: req.query.title, $options: "i" };
-    }
-
-    // الفلترة حسب الفئة
-    if (req.query.category) {
-      if (!mongoose.isValidObjectId(req.query.category)) {
-        return res
-          .status(400)
-          .json({ success: false, message: "معرف الفئة غير صالح" });
+      if (req.query.title) {
+          query.title = { $regex: req.query.title, $options: "i" };
       }
-      query.category = req.query.category;
-    }
 
-    // ترتيب النتائج حسب عدد المشاهدات
-    const sortOption = {};
-    if (req.query.views) {
-      sortOption.views = -1; // ترتيب تنازلي (الأكثر مشاهدة أولًا)
-    }
+      // الفلترة حسب الفئة
+      if (req.query.category) {
+          if (!mongoose.isValidObjectId(req.query.category)) {
+              return res
+                  .status(400)
+                  .json({ success: false, message: "معرف الفئة غير صالح" });
+          }
+          query.category = req.query.category;
+      }
+      // 🟣 فلترة بالانستراكتور
+      if (req.query.instructor) {
+          if (!mongoose.isValidObjectId(req.query.instructor)) {
+              return res
+                  .status(400)
+                  .json({ success: false, message: "Invalid instructor ID" });
+          }
+          query.instructor = req.query.instructor;
+      }
 
-    // التقسيم إلى صفحات
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
-    const skip = (page - 1) * limit;
+      // ترتيب النتائج حسب عدد المشاهدات
+      const sortOption = {};
+      if (req.query.views) {
+          sortOption.views = -1; // ترتيب تنازلي (الأكثر مشاهدة أولًا)
+      }
 
-    const totalCourses = await Course.countDocuments();
-    const courses = await Course.find(query)
-      .populate("instructor", "name phone")
-      .populate("category", "id name")
-      .sort(sortOption)
-      .skip(skip)
-      .limit(limit);
+      // التقسيم إلى صفحات
+      const page = parseInt(req.query.page, 10) || 1;
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const skip = (page - 1) * limit;
 
-    if (!courses.length) {
-      return res.status(404).json({
-        success: false,
-        message: "لا توجد كورسات تطابق معايير البحث",
+      const totalCourses = await Course.countDocuments();
+      const courses = await Course.find(query)
+          .populate("instructor", "name phone")
+          .populate("category", "id name")
+          .sort(sortOption)
+          .skip(skip)
+          .limit(limit);
+
+      if (!courses.length) {
+          return res.status(404).json({
+              success: false,
+              message: "لا توجد كورسات تطابق معايير البحث",
+          });
+      }
+
+      const total = await Course.countDocuments(query);
+
+      res.status(200).json({
+          success: true,
+          totalPages: Math.ceil(total / limit),
+          currentPage: page,
+          totalCourses,
+          countInPage: courses.length,
+          data: courses,
       });
-    }
-
-    const total = await Course.countDocuments(query);
-
-    res.status(200).json({
-      success: true,
-      totalPages: Math.ceil(total / limit),
-      currentPage: page,
-      totalCourses,
-      countInPage: courses.length,
-      data: courses,
-    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
