@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const sharp = require("sharp");
 const asyncHandler = require("express-async-handler");
-const factory = require("./handlerFactory");
+// const factory = require("./handlerFactory");
 const Course = require("../models/Course");
 const cloudinary = require("../cloudinary/cloudi");
 
@@ -222,7 +222,6 @@ exports.getCourse = async (req, res) => {
         .json({ success: false, message: "الكورس غير موجود" });
     }
 
-
     res.status(200).json({ success: true, data: course });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -359,26 +358,25 @@ exports.approveEnrollment = async (req, res) => {
 
 // 🔥 لزيادة عدد المشاهدات
 exports.increaseCourseViews = async (req, res) => {
-    try {
-        const course = await Course.findByIdAndUpdate(
-            req.params.id,
-            { $inc: { views: 1 } },
-            { new: true }
-        );
+  try {
+    const course = await Course.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    );
 
-        if (!course) {
-            return res.status(404).json({
-                success: false,
-                message: "الكورس غير موجود",
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: "تم تحديث عدد المشاهدات",
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "الكورس غير موجود",
+      });
     }
-};
 
+    res.status(200).json({
+      success: true,
+      message: "تم تحديث عدد المشاهدات",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
