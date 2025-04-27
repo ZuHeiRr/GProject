@@ -1,34 +1,38 @@
+const mongoose = require("mongoose");
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiErrors");
 const ApiFeatures = require("../utils/apiFeatures");
 const productModel = require("../models/productModel");
 
 exports.deleteOne = (Model) =>
-  asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const document = await Model.findByIdAndDelete(id);
-    if (!document) {
-      return next(new ApiError(`No document  for this id ${id}`, 404));
-    }
-    res.status(204).send();
-  });
+    asyncHandler(async (req, res, next) => {
+        const { id } = req.params;
+        const document = await Model.findByIdAndDelete(id);
+        if (!document) {
+            return next(new ApiError(`No document  for this id ${id}`, 404));
+        }
+        res.status(204).send();
+    });
 
 exports.updateOne = (Model) =>
-  asyncHandler(async (req, res, next) => {
-    const document = await Model.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
+    asyncHandler(async (req, res, next) => {
+        const document = await Model.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+            }
+        );
+        if (!document) {
+            return next(
+                new ApiError(`No document  for this id ${req.params.id}`, 404)
+            );
+        }
+        res.status(200).json({ data: document });
     });
-    if (!document) {
-      return next(
-        new ApiError(`No document  for this id ${req.params.id}`, 404)
-      );
-    }
-    res.status(200).json({ data: document });
-  });
 
 exports.creatOne = (Model, name) =>
     asyncHandler(async (req, res) => {
-        
         // ✅ لو الموديل هو Product
         if (name === "Product") {
             if (!req.body.user) {
@@ -73,34 +77,45 @@ exports.creatOne = (Model, name) =>
 //   });
 
 exports.getOne = (Model) =>
-  asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const document = await Model.findById(id);
+    asyncHandler(async (req, res, next) => {
+        const { id } = req.params;
+        const document = await Model.findById(id);
 
-    if (!document) {
-      return next(new ApiError(`No document  for this id ${id}`, 404));
-    }
-    res.status(200).json({ data: document });
-  });
+        if (!document) {
+            return next(new ApiError(`No document  for this id ${id}`, 404));
+        }
+        res.status(200).json({ data: document });
+    });
 
 exports.getAll = (Model, modelName) =>
-  asyncHandler(async (req, res) => {
-    let filter = {};
-    if (req.filterObj) {
-      filter = req.filterObj;
-    }
-    //Buils query
-    const documentsCounts = await Model.countDocuments();
-    const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
-      .paginate(documentsCounts)
-      .filter()
-      .search(modelName)
-      .limitFields()
-      .sort();
-    //execute query
-    const { mongooseQuery, paginationResult } = apiFeatures;
-    const documents = await mongooseQuery;
-    res
-      .status(200)
-      .json({ result: documents.length, paginationResult, data: documents });
-  });
+    asyncHandler(async (req, res) => {
+        let filter = {};
+        if (req.filterObj) {
+            filter = req.filterObj;
+        }
+        //  فلترة إضافية لو الموديل هو Product
+        if (Model.modelName === "Product" && req.query.user) {
+            if (!mongoose.isValidObjectId(req.query.user)) {
+                return res
+                    .status(400)
+                    .json({ success: false, message: "Invalid user ID" });
+            }
+            filter.user = req.query.user;
+        }
+        //Buils query
+        const documentsCounts = await Model.countDocuments();
+        const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
+            .paginate(documentsCounts)
+            .filter()
+            .search(modelName)
+            .limitFields()
+            .sort();
+        //execute query
+        const { mongooseQuery, paginationResult } = apiFeatures;
+        const documents = await mongooseQuery;
+        res.status(200).json({
+            result: documents.length,
+            paginationResult,
+            data: documents,
+        });
+    });
