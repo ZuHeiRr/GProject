@@ -104,12 +104,20 @@ exports.getAll = (Model, modelName) =>
         }
         //Buils query
         const documentsCounts = await Model.countDocuments();
+
         const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
             .paginate(documentsCounts)
             .filter()
             .search(modelName)
             .limitFields()
             .sort();
+        // ✅ إضافة populate فقط لو الموديل هو Product
+        if (Model.modelName === "Product") {
+            apiFeatures.mongooseQuery = apiFeatures.mongooseQuery.populate({
+                path: "user",
+                select: "name phone profileImg _id",
+            });
+        }
         //execute query
         const { mongooseQuery, paginationResult } = apiFeatures;
         const documents = await mongooseQuery;
