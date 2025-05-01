@@ -180,7 +180,7 @@ exports.getCourses = async (req, res) => {
 
       const totalCourses = await Course.countDocuments();
       const courses = await Course.find(query)
-          .populate("instructor", "name phone")
+          .populate("instructor", "name phone profileImg")
           .populate("category", "id name")
           .sort(sortOption)
           .skip(skip)

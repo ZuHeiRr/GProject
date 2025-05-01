@@ -79,7 +79,18 @@ exports.creatOne = (Model, name) =>
 exports.getOne = (Model) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
-        const document = await Model.findById(id);
+
+        // 🟢 بناء الكويري
+        let query = Model.findById(id);
+
+        // ✅ لو الموديل Product نضيف populate للـ user
+        if (Model.modelName === "Product") {
+            query = query.populate({
+                path: "user",
+                select: "name phone profileImg _id",
+            });
+        }
+        const document = await query;
 
         if (!document) {
             return next(new ApiError(`No document  for this id ${id}`, 404));
