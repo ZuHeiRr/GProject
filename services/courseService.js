@@ -212,9 +212,9 @@ exports.getCourses = async (req, res) => {
 exports.getCourse = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id)
-      .populate("instructor", "name phone")
-      .populate("category", "id name")
-      .populate("reviews.user", "name");
+        .populate("instructor", "name phone profileImg")
+        .populate("category", "id name")
+        .populate("reviews.user", "name");
 
     if (!course) {
       return res
