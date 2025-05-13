@@ -81,14 +81,6 @@ exports.getFavorites = async (req, res) => {
             strictPopulate: false, //  ده المهم
             populate: [
                 {
-                    path: "user", // لو item = Product
-                    select: "name phone profileImg",
-                },
-                {
-                    path: "instructor", // لو item = Course
-                    select: "name phone profileImg",
-                },
-                {
                     path: "category",
                     select: "name",
                 },
@@ -99,6 +91,26 @@ exports.getFavorites = async (req, res) => {
 
     // تصفية العناصر التي تكون غير موجودة (أي `null`)
     const validFavorites = favorites.filter((fav) => fav.item !== null);
+        await Promise.all(
+            validFavorites.map(async (fav) => {
+                const { item, itemType } = fav;
+
+
+                if (itemType === "Product") {
+                    await item.populate({
+                        path: "user",
+                        select: "name phone profileImg",
+                        strictPopulate: false,
+                    });
+                } else if (itemType === "Course") {
+                    await item.populate({
+                        path: "instructor",
+                        select: "name phone profileImg",
+                        strictPopulate: false,
+                    });
+                }
+            })
+        );
 
     // حساب العدد الإجمالي للمفضلات بعد التصفية
     const totalFavorites = await Favorite.countDocuments({ user: userId });
