@@ -78,7 +78,7 @@ exports.getFavorites = async (req, res) => {
         .populate({
             path: "item",
             select: "-__v", // تجاهل الـ __v في البيانات المسترجعة
-            strictPopulate: false, // 👈 ده المهم
+            strictPopulate: false, //  ده المهم
             populate: [
                 {
                     path: "user", // لو item = Product
