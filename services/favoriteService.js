@@ -75,12 +75,26 @@ exports.getFavorites = async (req, res) => {
 
     // جلب المفضلات مع فلترة المنتجات أو الكورسات المحذوفة
     const favorites = await Favorite.find({ user: userId })
-      .populate({
-        path: "item",
-        select: "-__v", // تجاهل الـ __v في البيانات المسترجعة
-      })
-      .skip(skip)
-      .limit(limit);
+        .populate({
+            path: "item",
+            select: "-__v", // تجاهل الـ __v في البيانات المسترجعة
+            populate: [
+                {
+                    path: "user", // في حالة المنتج
+                    select: "name phone profileImg",
+                },
+                {
+                    path: "instructor", // في حالة الكورس
+                    select: "name phone profileImg",
+                },
+                {
+                    path: "category", // لو محتاج تفاصيل الكاتيجوري
+                    select: "name",
+                },
+            ],
+        })
+        .skip(skip)
+        .limit(limit);
 
     // تصفية العناصر التي تكون غير موجودة (أي `null`)
     const validFavorites = favorites.filter((fav) => fav.item !== null);
