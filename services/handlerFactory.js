@@ -113,6 +113,17 @@ exports.getAll = (Model, modelName) =>
             }
             filter.user = req.query.user;
         }
+
+        // ✅ فلترة إضافية لو الموديل هو Product وبـ category id
+        if (Model.modelName === "Product" && req.query.category) {
+            if (!mongoose.isValidObjectId(req.query.category)) {
+                return res
+                    .status(400)
+                    .json({ success: false, message: "Invalid category ID" });
+            }
+            filter.category = req.query.category;
+        }
+        
         //Buils query
         const documentsCounts = await Model.countDocuments();
 
