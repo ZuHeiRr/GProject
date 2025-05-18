@@ -24,6 +24,9 @@ const {
 const { protect, allowedTo } = require("../services/authService");
 
 const router = express.Router();
+
+// ✅ جعل عرض المستخدم متاح للعامة
+router.get("/:id", getUserValidator, getUser);
 router.use(protect);
 
 router.get("/getMe", getLoggedUserData, getUser);
@@ -46,7 +49,6 @@ router
   .post(uploadUserImage, resizeUserImage, createUserValidator, creatUser);
 router
   .route("/:id")
-  .get(getUserValidator, getUser)
   .put(updateUserValidator, updateUser)
   .delete(deleteUserValidator, deleteUser);
 
