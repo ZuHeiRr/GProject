@@ -130,28 +130,29 @@ exports.deleteUserValidator = [
   validatorMiddleware,
 ];
 exports.updateLoggedUserValidator = [
-  body("name")
-    .optional()
-    .custom((val, { req }) => {
-      req.body.slug = slugify(val);
-      return true;
-    }),
-  check("email")
-    .notEmpty()
-    .withMessage("Email required")
-    .isEmail()
-    .withMessage("Invalid email address")
-    .custom((val) =>
-      User.findOne({ email: val }).then((user) => {
-        if (user) {
-          return Promise.reject(new Error("E-mail already in user"));
-        }
-      })
-    ),
-  check("phone")
-    .optional()
-    .isMobilePhone(["ar-EG", "ar-SA"])
-    .withMessage("Invalid phone number only accepted Egy and SA Phone numbers"),
+    body("name")
+        .optional()
+        .custom((val, { req }) => {
+            req.body.slug = slugify(val);
+            return true;
+        }),
+    check("email")
+        .optional()
+        .isEmail()
+        .withMessage("Invalid email address")
+        .custom((val, { req }) =>
+            User.findOne({ email: val }).then((user) => {
+                if (user && user._id.toString() !== req.user._id.toString()) {
+                    return Promise.reject(new Error("E-mail already in use"));
+                }
+            })
+        ),
+    check("phone")
+        .optional()
+        .isMobilePhone(["ar-EG", "ar-SA"])
+        .withMessage(
+            "Invalid phone number only accepted Egy and SA Phone numbers"
+        ),
 
-  validatorMiddleware,
+    validatorMiddleware,
 ];
