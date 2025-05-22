@@ -203,5 +203,5 @@ exports.deleteLoggedUserData = asyncHandler(async (req, res, next) => {
         return next(new ApiError("المستخدم غير موجود", 404));
     }
 
-    res.status(204).json({ message: "تم حذف الحساب بنجاح" });
+    res.status(200).json({ message: "تم حذف الحساب بنجاح" });
 });
