@@ -25,11 +25,12 @@ const { protect, allowedTo } = require("../services/authService");
 
 const router = express.Router();
 
+router.get("/getMe", getLoggedUserData, getUser);
+
 // ✅ جعل عرض المستخدم متاح للعامة
 router.get("/:id", getUserValidator, getUser);
 router.use(protect);
 
-router.get("/getMe", getLoggedUserData, getUser);
 router.put("/changeMyPassword", updateLoggedUserPassword);
 router.put(
     "/updateMe",
