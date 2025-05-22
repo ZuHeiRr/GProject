@@ -25,7 +25,7 @@ const { protect, allowedTo } = require("../services/authService");
 
 const router = express.Router();
 
-router.get("/getMe", getLoggedUserData, getUser);
+router.get("/getMe", protect, getLoggedUserData, getUser);
 
 // ✅ جعل عرض المستخدم متاح للعامة
 router.get("/:id", getUserValidator, getUser);
