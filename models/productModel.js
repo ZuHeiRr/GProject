@@ -29,7 +29,6 @@ const productSchema = new mongoose.Schema(
             type: Number,
             required: [true, "Product price is required"],
             trim: true,
-            max: [200000, "Too long product price"],
         },
         images: [String],
         category: {
