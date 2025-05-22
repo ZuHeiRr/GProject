@@ -197,7 +197,11 @@ exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
 // @route   DELETE /api/v1/users/deleteMe
 // @access  Private/Protect
 exports.deleteLoggedUserData = asyncHandler(async (req, res, next) => {
-  await userModel.findByIdAndUpdate(req.user._id, { active: false });
+    const deletedUser = await userModel.findByIdAndDelete(req.user._id);
 
-  res.status(204).json({ status: "Success" });
+    if (!deletedUser) {
+        return next(new ApiError("المستخدم غير موجود", 404));
+    }
+
+    res.status(204).json({ message: "تم حذف الحساب بنجاح" });
 });
