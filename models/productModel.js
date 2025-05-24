@@ -7,8 +7,8 @@ const productSchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true,
-            minlength: [3, "Too short product title"],
-            maxlength: [100, "Too long product title"],
+            // minlength: [3, "Too short product title"],
+            // maxlength: [100, "Too long product title"],
         },
         user: {
             type: mongoose.Schema.ObjectId,
@@ -23,7 +23,7 @@ const productSchema = new mongoose.Schema(
         description: {
             type: String,
             required: [true, "Product description is required"],
-            minlength: [20, "Too short product description"],
+            // minlength: [20, "Too short product description"],
         },
         price: {
             type: Number,
