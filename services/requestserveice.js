@@ -241,7 +241,9 @@ exports.checkMyRequestStatus = async (req, res) => {
             course: courseId,
         });
         if (!request) {
-            return res.status(200).json({ success: true, status: "none" }); // 🚫 مفيش طلب
+            return res
+                .status(200)
+                .json({ success: true, status: "not requested" }); // 🚫 مفيش طلب
         }
 
         // ✅ رجع حالة الطلب سواء pending أو rejected
