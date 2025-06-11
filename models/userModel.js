@@ -55,6 +55,24 @@ userSchema.pre("save", async function (next) {
     next();
 });
 
+// ❗ حذف المنتجات والكورسات لما يتم حذف المستخدم
+userSchema.pre("deleteOne", { document: true, query: false }, async function (next) {
+    try {
+      const userId = this._id;
+  
+      // حذف كل المنتجات المرتبطة بالمستخدم
+      await mongoose.model("Product").deleteMany({ user: userId });
+  
+      // حذف كل الكورسات اللي هو عاملها كمحاضر
+      await mongoose.model("Course").deleteMany({ instructor: userId });
+  
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
+  
+
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;
