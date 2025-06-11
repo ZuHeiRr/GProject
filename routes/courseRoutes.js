@@ -13,6 +13,8 @@ const {
 } = require("../services/courseService");
 const { protect } = require("../middelwares/authMiddleware");
 
+const { allowedTo } = require("../services/authService");
+
 const router = express.Router();
 
 // إضافة كورس جديد
@@ -28,7 +30,7 @@ router.get("/:id", getCourse);
 router.put("/:id", protect, updateCourse);
 
 // حذف كورس
-router.delete("/:id", protect, deleteCourse);
+router.delete("/:id", protect, allowedTo("admin", "manager"), deleteCourse);
 
 // 🔒 إرسال طلب اشتراك في الكورس
 router.post("/:id/request", protect, requestEnrollment);
