@@ -54,22 +54,26 @@ exports.getRequests = async (req, res) => {
 
         // 🔍 البحث عن الكورس
         const course = await Course.findById(courseId);
-        if (!course) return res.status(404).json({ message: "الكورس غير موجود" });
+        if (!course)
+            return res.status(404).json({ message: "الكورس غير موجود" });
 
         // ✅ التأكد أن المستخدم هو المحاضر
         if (course.instructor.toString() !== userId)
-            return res.status(403).json({ message: "ليس لديك صلاحية لرؤية هذه الطلبات" });
+            return res
+                .status(403)
+                .json({ message: "ليس لديك صلاحية لرؤية هذه الطلبات" });
 
         // 🔍 جلب جميع الطلبات المعلقة لهذا الكورس
-        const requests = await Request.find({ course: courseId, status: "pending" })
-            .populate("sender", "name ");
+        const requests = await Request.find({
+            course: courseId,
+            status: "pending",
+        }).populate("sender", "name ");
 
         res.status(200).json({ success: true, data: requests });
     } catch (error) {
         res.status(500).json({ message: "حدث خطأ", error: error.message });
     }
 };
-
 
 // 📌 قبول طلب انضمام
 exports.approveRequest = async (req, res) => {
@@ -119,7 +123,6 @@ exports.approveRequest = async (req, res) => {
     }
 };
 
-
 // 📌 رفض طلب انضمام
 exports.rejectRequest = async (req, res) => {
     try {
@@ -128,22 +131,28 @@ exports.rejectRequest = async (req, res) => {
 
         // 🔍 البحث عن الطلب
         const request = await Request.findById(requestId);
-        if (!request) return res.status(404).json({ message: "الطلب غير موجود" });
+        if (!request)
+            return res.status(404).json({ message: "الطلب غير موجود" });
 
         // 🔍 البحث عن الكورس
         const course = await Course.findById(request.course);
-        if (!course) return res.status(404).json({ message: "الكورس غير موجود" });
+        if (!course)
+            return res.status(404).json({ message: "الكورس غير موجود" });
 
         // ✅ التأكد أن المستخدم هو صاحب الكورس
         if (course.instructor.toString() !== userId)
-            return res.status(403).json({ message: "ليس لديك صلاحية لرفض الطلبات" });
+            return res
+                .status(403)
+                .json({ message: "ليس لديك صلاحية لرفض الطلبات" });
 
         // ✅ تحديث حالة الطلب إلى "مرفوض"
         request.status = "rejected";
         await request.save();
 
         // ✅ حذف المستخدم من `pendingRequests`
-        course.pendingRequests = course.pendingRequests.filter(id => id.toString() !== request.sender.toString());
+        course.pendingRequests = course.pendingRequests.filter(
+            (id) => id.toString() !== request.sender.toString()
+        );
         await course.save();
 
         res.status(200).json({ message: "تم رفض الطلب بنجاح", request });
@@ -184,7 +193,9 @@ exports.cancelRequest = async (req, res) => {
 
         // ✅ التحقق أن هذا الطلب خاص بالمستخدم الحالي
         if (request.sender.toString() !== userId) {
-            return res.status(403).json({ message: "لا يمكنك إلغاء هذا الطلب" });
+            return res
+                .status(403)
+                .json({ message: "لا يمكنك إلغاء هذا الطلب" });
         }
 
         // ✅ حذف الطلب
@@ -202,5 +213,42 @@ exports.cancelRequest = async (req, res) => {
         res.status(200).json({ message: "تم إلغاء الطلب بنجاح" });
     } catch (error) {
         res.status(500).json({ message: "حدث خطأ", error: error.message });
+    }
+};
+
+// ✅ التحقق من حالة المستخدم بالنسبة لكورس معين (هل هو طالب، ولا بعت طلب، ولا مرفوض، ولا مفيش حاجة)
+exports.checkMyRequestStatus = async (req, res) => {
+    try {
+        const { id: userId } = req.user;
+        const { courseId } = req.params;
+
+        // 🔍 تحقق من وجود الكورس
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res
+                .status(404)
+                .json({ success: false, message: "الكورس غير موجود" });
+        }
+
+        // ✅ تحقق هل المستخدم بالفعل طالب مقبول
+        if (course.students.includes(userId)) {
+            return res.status(200).json({ success: true, status: "accepted" });
+        }
+
+        // 🔍 تحقق هل عنده طلب مسبقًا
+        const request = await Request.findOne({
+            sender: userId,
+            course: courseId,
+        });
+        if (!request) {
+            return res
+                .status(200)
+                .json({ success: true, status: "not requested" }); // 🚫 مفيش طلب
+        }
+
+        // ✅ رجع حالة الطلب سواء pending أو rejected
+        return res.status(200).json({ success: true, status: request.status });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 };

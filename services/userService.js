@@ -166,24 +166,46 @@ exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/users/updateMe
 // @access  Private/Protect
 exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
-  const updatedUser = await userModel.findByIdAndUpdate(
-    req.user._id,
-    {
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
-    },
-    { new: true }
-  );
+    const updateFields = {};
 
-  res.status(200).json({ data: updatedUser });
+    // فقط حدث الحقول المرسلة
+    if (req.body.name) updateFields.name = req.body.name;
+    if (req.body.email) updateFields.email = req.body.email;
+    if (req.body.phone) updateFields.phone = req.body.phone;
+    if (req.body.profileImg) updateFields.profileImg = req.body.profileImg;
+    if (req.body.notificationToken)
+        updateFields.notificationToken = req.body.notificationToken;
+
+    const updatedUser = await userModel.findByIdAndUpdate(
+        req.user._id,
+        updateFields,
+        {
+            new: true,
+            runValidators: true,
+        }
+    );
+
+    if (!updatedUser) {
+        return next(new ApiError("المستخدم غير موجود", 404));
+    }
+
+    res.status(200).json({ data: updatedUser });
 });
+  
 
 // @desc    Deactivate logged user
 // @route   DELETE /api/v1/users/deleteMe
 // @access  Private/Protect
 exports.deleteLoggedUserData = asyncHandler(async (req, res, next) => {
-  await userModel.findByIdAndUpdate(req.user._id, { active: false });
+    const user = await userModel.findById(req.user._id);
 
-  res.status(204).json({ status: "Success" });
+    if (!user) {
+        return next(new ApiError("المستخدم غير موجود", 404));
+    }
+
+    // تشغيل middleware لحذف المنتجات والكورسات
+    await user.deleteOne();
+
+    res.status(200).json({ message: "تم حذف الحساب بنجاح" });
 });
+  

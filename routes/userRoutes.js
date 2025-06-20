@@ -24,11 +24,21 @@ const {
 const { protect, allowedTo } = require("../services/authService");
 
 const router = express.Router();
+
+router.get("/getMe", protect, getLoggedUserData, getUser);
+
+// ✅ جعل عرض المستخدم متاح للعامة
+router.get("/:id", getUserValidator, getUser);
 router.use(protect);
 
-router.get("/getMe", getLoggedUserData, getUser);
 router.put("/changeMyPassword", updateLoggedUserPassword);
-router.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
+router.put(
+    "/updateMe",
+    uploadUserImage,
+    resizeUserImage,
+    updateLoggedUserValidator,
+    updateLoggedUserData
+);
 router.delete("/deleteMe", deleteLoggedUserData);
 
 // admin
@@ -46,7 +56,6 @@ router
   .post(uploadUserImage, resizeUserImage, createUserValidator, creatUser);
 router
   .route("/:id")
-  .get(getUserValidator, getUser)
   .put(updateUserValidator, updateUser)
   .delete(deleteUserValidator, deleteUser);
 

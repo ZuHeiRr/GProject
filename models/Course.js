@@ -21,7 +21,7 @@ const courseSchema = new mongoose.Schema(
             required: true,
         }, // المحاضر هو مستخدم
         location: { type: String, required: true }, // موقع الكورس
-        ratingsAverage: { type: Number, default: 1, min: 1, max: 5 }, // متوسط التقييمات
+        ratingsAverage: { type: Number, default:0, min: 0, max: 5 }, // متوسط التقييمات
         ratingsQuantity: { type: Number, default: 0 }, // عدد التقييمات
         language: { type: String, required: true }, // لغة الكورس
         access: {

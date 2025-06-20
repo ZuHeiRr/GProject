@@ -6,6 +6,7 @@ const {
     rejectRequest,
     getUserRequests,
     cancelRequest,
+    checkMyRequestStatus,
 } = require("../services/requestserveice");
 const { protect } = require("../middelwares/authMiddleware");
 
@@ -25,6 +26,9 @@ router.post("/approve/:requestId", protect, approveRequest);
 router.post("/reject/:requestId", protect, rejectRequest);
 
 router.delete("/:requestId/cancel", protect, cancelRequest);
+
+// ✅ Endpoint للتحقق من حالة المستخدم في كورس معين
+router.get("/check-status/:courseId", protect, checkMyRequestStatus);
 
 
 module.exports = router;

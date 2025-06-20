@@ -75,15 +75,42 @@ exports.getFavorites = async (req, res) => {
 
     // جلب المفضلات مع فلترة المنتجات أو الكورسات المحذوفة
     const favorites = await Favorite.find({ user: userId })
-      .populate({
-        path: "item",
-        select: "-__v", // تجاهل الـ __v في البيانات المسترجعة
-      })
-      .skip(skip)
-      .limit(limit);
+        .populate({
+            path: "item",
+            select: "-__v", // تجاهل الـ __v في البيانات المسترجعة
+            strictPopulate: false, //  ده المهم
+            populate: [
+                {
+                    path: "category",
+                    select: "name",
+                },
+            ],
+        })
+        .skip(skip)
+        .limit(limit);
 
     // تصفية العناصر التي تكون غير موجودة (أي `null`)
     const validFavorites = favorites.filter((fav) => fav.item !== null);
+        await Promise.all(
+            validFavorites.map(async (fav) => {
+                const { item, itemType } = fav;
+
+
+                if (itemType === "Product") {
+                    await item.populate({
+                        path: "user",
+                        select: "name phone profileImg",
+                        strictPopulate: false,
+                    });
+                } else if (itemType === "Course") {
+                    await item.populate({
+                        path: "instructor",
+                        select: "name phone profileImg",
+                        strictPopulate: false,
+                    });
+                }
+            })
+        );
 
     // حساب العدد الإجمالي للمفضلات بعد التصفية
     const totalFavorites = await Favorite.countDocuments({ user: userId });
