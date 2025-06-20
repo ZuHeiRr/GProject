@@ -77,8 +77,8 @@ exports.updateUserValidator = [
     .custom(async (val, { req }) => {
       const user = await User.findOne({ email: val });
 
-      // لو الإيميل موجود ومش تبع نفس المستخدم → نرفض
-      if (user && user._id.toString() !== req.user.id) {
+      // لو الإيميل موجود ومش بتاع نفس المستخدم → نرفض
+      if (user && user._id.toString() !== req.params.id) {
         throw new Error("E-mail already in use");
       }
 
