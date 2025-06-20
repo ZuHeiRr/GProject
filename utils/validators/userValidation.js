@@ -74,13 +74,17 @@ exports.updateUserValidator = [
     .withMessage("Email required")
     .isEmail()
     .withMessage("Invalid email address")
-    .custom((val) =>
-      User.findOne({ email: val }).then((user) => {
-        if (user) {
-          return Promise.reject(new Error("E-mail already in user"));
-        }
-      })
-    ),
+    .custom(async (val, { req }) => {
+      const user = await User.findOne({ email: val });
+
+      // لو الإيميل موجود ومش تبع نفس المستخدم → نرفض
+      if (user && user._id.toString() !== req.user.id) {
+        throw new Error("E-mail already in use");
+      }
+
+      return true;
+    }),
+
   check("phone")
     .optional()
     .isMobilePhone(["ar-EG", "ar-SA"])
@@ -130,29 +134,27 @@ exports.deleteUserValidator = [
   validatorMiddleware,
 ];
 exports.updateLoggedUserValidator = [
-    body("name")
-        .optional()
-        .custom((val, { req }) => {
-            req.body.slug = slugify(val);
-            return true;
-        }),
-    check("email")
-        .optional()
-        .isEmail()
-        .withMessage("Invalid email address")
-        .custom((val, { req }) =>
-            User.findOne({ email: val }).then((user) => {
-                if (user && user._id.toString() !== req.user._id.toString()) {
-                    return Promise.reject(new Error("E-mail already in use"));
-                }
-            })
-        ),
-    check("phone")
-        .optional()
-        .isMobilePhone(["ar-EG", "ar-SA"])
-        .withMessage(
-            "Invalid phone number only accepted Egy and SA Phone numbers"
-        ),
+  body("name")
+    .optional()
+    .custom((val, { req }) => {
+      req.body.slug = slugify(val);
+      return true;
+    }),
+  check("email")
+    .optional()
+    .isEmail()
+    .withMessage("Invalid email address")
+    .custom((val, { req }) =>
+      User.findOne({ email: val }).then((user) => {
+        if (user && user._id.toString() !== req.user._id.toString()) {
+          return Promise.reject(new Error("E-mail already in use"));
+        }
+      })
+    ),
+  check("phone")
+    .optional()
+    .isMobilePhone(["ar-EG", "ar-SA"])
+    .withMessage("Invalid phone number only accepted Egy and SA Phone numbers"),
 
-    validatorMiddleware,
+  validatorMiddleware,
 ];
