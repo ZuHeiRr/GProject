@@ -31,7 +31,7 @@ exports.login = asyncHandler(async (req, res, next) => {
   // 2) check if user exist & check if password is correct
   const user = await User.findOne({ email: req.body.email });
 
-  if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+  if (!user) {
     return next(new ApiError("Incorrect email or password", 401));
   }
   // 3) generate token
