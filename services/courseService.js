@@ -233,34 +233,36 @@ exports.getCourse = async (req, res) => {
     }
 };
 
-// 🟢 تحديث بيانات الكورس
+// 🟢 تحديث بيانات الكورس - للأدمن فقط
 exports.updateCourse = async (req, res) => {
     try {
-        let course = await Course.findById(req.params.id);
-
-        if (!course) {
-            return res
-                .status(404)
-                .json({ success: false, message: "الكورس غير موجود" });
-        }
-
-        if (course.instructor.toString() !== req.user._id.toString()) {
-            return res.status(403).json({
-                success: false,
-                message: "ليس لديك إذن لتعديل هذا الكورس",
-            });
-        }
-
-        course = await Course.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
+      const course = await Course.findById(req.params.id);
+  
+      if (!course) {
+        return res
+          .status(404)
+          .json({ success: false, message: "الكورس غير موجود" });
+      }
+  
+      // ✅ فقط الأدمن يحق له التعديل
+      if (req.user.role !== "admin") {
+        return res.status(403).json({
+          success: false,
+          message: "فقط الأدمن يمكنه تعديل بيانات الكورسات",
         });
-
-        res.status(200).json({ success: true, data: course });
+      }
+  
+      const updatedCourse = await Course.findByIdAndUpdate(req.params.id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+  
+      res.status(200).json({ success: true, data: updatedCourse });
     } catch (error) {
-        res.status(400).json({ success: false, message: error.message });
+      res.status(400).json({ success: false, message: error.message });
     }
-};
+  };
+  
 
 // 🟢 حذف كورس
 exports.deleteCourse = async (req, res) => {
