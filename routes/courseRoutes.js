@@ -30,7 +30,7 @@ router.get("/:id", getCourse);
 router.put("/:id", protect, updateCourse);
 
 // حذف كورس
-router.delete("/:id", protect, allowedTo("admin", "manager"), deleteCourse);
+router.delete("/:id", protect, deleteCourse);
 
 // 🔒 إرسال طلب اشتراك في الكورس
 router.post("/:id/request", protect, requestEnrollment);
