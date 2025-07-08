@@ -7,13 +7,31 @@ const productModel = require("../models/productModel");
 exports.deleteOne = (Model) =>
     asyncHandler(async (req, res, next) => {
         const { id } = req.params;
-        const document = await Model.findByIdAndDelete(id);
+
+        const document = await Model.findById(id);
+
         if (!document) {
-            return next(new ApiError(`No document  for this id ${id}`, 404));
+            return next(new ApiError(`No document for this id ${id}`, 404));
         }
+
+        // 🔒 تحقق من الصلاحيات إذا كان الموديل هو Product
+        if (Model.modelName === "Product") {
+            const isOwner =
+                document.user.toString() === req.user._id.toString();
+            const isAdmin = req.user.role === "admin";
+
+            if (!isOwner && !isAdmin) {
+                return next(
+                    new ApiError("ليس لديك صلاحية لحذف هذا المنتج", 403)
+                );
+            }
+        }
+
+        await document.deleteOne();
+
         res.status(204).send();
     });
-
+  
 exports.updateOne = (Model) =>
     asyncHandler(async (req, res, next) => {
         const document = await Model.findByIdAndUpdate(
