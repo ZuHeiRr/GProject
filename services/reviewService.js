@@ -55,6 +55,7 @@ exports.addReview = async (req, res) => {
 
         // إضافة التقييم إلى الكورس
         course.reviews.push(review._id);
+        
         // ✅ إعادة حساب المتوسط وعدد التقييمات
         const allReviews = await Review.find({ course: courseId });
         const totalRatings = allReviews.reduce((sum, r) => sum + r.rating, 0);
