@@ -12,7 +12,7 @@ const reviewSchema = new mongoose.Schema(
             ref: "Course",
             required: true,
         }, // الكورس الذي تمت مراجعته
-        rating: { type: Number, required: true, min: 1, max: 5 },
+        rating: { type: Number, required: true, min: 0, max: 5 },
         comment: { type: String, required: true },
     },
     { timestamps: true }
