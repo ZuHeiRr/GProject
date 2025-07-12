@@ -55,8 +55,13 @@ exports.addReview = async (req, res) => {
 
         // إضافة التقييم إلى الكورس
         course.reviews.push(review._id);
-        course.ratingsQuantity += 1;
-        course.ratingsAverage = (course.ratingsAverage + rating) / 2; // تحديث المتوسط
+        // ✅ إعادة حساب المتوسط وعدد التقييمات
+        const allReviews = await Review.find({ course: courseId });
+        const totalRatings = allReviews.reduce((sum, r) => sum + r.rating, 0);
+        const averageRating = totalRatings / allReviews.length;
+
+        course.ratingsQuantity = allReviews.length;
+        course.ratingsAverage = Number(averageRating.toFixed(1)); // تقريبه لرقم عشري واحد
         await course.save();
 
         res.status(201).json({ success: true, data: review });
